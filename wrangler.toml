@@ -17,3 +17,6 @@ database_name = "smail"
 database_id = "fbab1727-dbff-495e-ada9-81bc8d71c31d"
 preview_database_id = "fbab1727-dbff-495e-ada9-81bc8d71c31d"
 migrations_dir = "app/drizzle"
+
+[vars]
+DOMAIN = "deatrg.top"
