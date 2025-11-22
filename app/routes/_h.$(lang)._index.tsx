@@ -15,7 +15,7 @@ import { formatDistanceToNow } from "date-fns";
 import { enUS, zhCN } from "date-fns/locale";
 import { Trash2Icon } from "lucide-react";
 import { customAlphabet } from "nanoid";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { d1Wrapper } from "~/.server/db";
 import { sessionWrapper } from "~/.server/session";
 import { AuthForm } from "~/components/auth-form";
@@ -128,6 +128,24 @@ export default function Index() {
 	const [token, setToken] = useState("");
 
 	const revalidator = useRevalidator();
+	const previousEmailsLength = useRef(emails.length);
+
+	useEffect(() => {
+		if (email && Notification.permission === "default") {
+			Notification.requestPermission();
+		}
+	}, [email]);
+
+	useEffect(() => {
+		if (emails.length > previousEmailsLength.current) {
+			if (Notification.permission === "granted") {
+				new Notification("New Email", {
+					body: "You have received a new email!",
+				});
+			}
+		}
+		previousEmailsLength.current = emails.length;
+	}, [emails]);
 
 	useEffect(() => {
 		const interval = setInterval(() => {
