@@ -42,7 +42,7 @@ export default function EmailDetail() {
 				<div className="flex-1" />
 				<Link
 					prefetch="viewport"
-					unstable_viewTransition
+					viewTransition
 					className={cn(buttonVariants({ variant: "secondary", size: "sm" }))}
 					to="/"
 				>

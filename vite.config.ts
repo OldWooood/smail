@@ -10,7 +10,6 @@ export default defineConfig({
 		remixCloudflareDevProxy(),
 		remix({
 			future: {
-				unstable_singleFetch: true,
 				v3_fetcherPersist: true,
 				v3_relativeSplatPath: true,
 				v3_throwAbortReason: true,
@@ -20,8 +19,4 @@ export default defineConfig({
 	],
 });
 
-declare module "@remix-run/cloudflare" {
-	interface Future {
-		unstable_singleFetch: true;
-	}
-}
+

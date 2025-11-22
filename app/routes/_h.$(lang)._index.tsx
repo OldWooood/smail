@@ -238,7 +238,7 @@ export default function Index() {
 							{emails.map((email) => (
 								<NavLink
 									prefetch="viewport"
-									unstable_viewTransition
+									viewTransition
 									to={`/emails/${email.id}`}
 									key={email.id}
 									className={cn(
