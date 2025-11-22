@@ -9,7 +9,7 @@ import {
 } from "@remix-run/react";
 import "~/tailwind.css";
 
-export async function loader({params}:LoaderFunctionArgs) {
+export async function loader({ params }: LoaderFunctionArgs) {
 	return {
 		lang: params.lang || "en"
 	}
@@ -19,12 +19,30 @@ export function Layout({ children }: { children: React.ReactNode }) {
 	const { lang } = useLoaderData<typeof loader>();
 
 	return (
-		<html lang={lang} className="light">
+		<html lang={lang}>
 			<head>
 				<meta charSet="utf-8" />
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
 				<Meta />
 				<Links />
+				<script
+					dangerouslySetInnerHTML={{
+						__html: `
+              if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.classList.add('dark');
+              } else {
+                document.documentElement.classList.remove('dark');
+              }
+              window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (e.matches) {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              });
+            `,
+					}}
+				/>
 			</head>
 			<body>
 				{children}
