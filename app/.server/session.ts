@@ -4,8 +4,9 @@ import {
 } from "@remix-run/cloudflare";
 
 type SessionData = {
-	email: string;
-	password: string;
+	email?: string;
+	password?: string;
+	mailboxToken?: string;
 };
 
 const DEFAULT_COOKIE_SECRET = "defalt_secret";

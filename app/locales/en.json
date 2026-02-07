@@ -1,11 +1,18 @@
 {
-	"title": "smail",
-	"description": "A free and open-source temporary email service",
+	"title": "temp email",
+	"description": "A fast and private temporary email service",
 	"button": "Get Email",
 	"card_description": "This is your temporary email, the email list refreshes every 10 seconds",
 	"email_list": "Email List",
 	"email_empty": "No email",
 	"email_detail": "Email Detail",
+	"custom_email": {
+		"label": "Custom address",
+		"placeholder": "username",
+		"hint": "Leave blank to get a random address.",
+		"error_taken": "This address is already taken. Please choose another.",
+		"error_invalid": "Only 3-32 letters, numbers, dots, underscores, or dashes."
+	},
 	"features": [
 		{
 			"title": "Open-source",
@@ -21,7 +28,7 @@
 		},
 		{
 			"title": "Self-hosted",
-			"description": "You can deploy a smail service by yourself, just a few minutes."
+			"description": "You can deploy a TempEmail service by yourself, just a few minutes."
 		}
 	],
 	"auth": {

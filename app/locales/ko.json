@@ -1,0 +1,39 @@
+{
+	"title": "임시 이메일",
+	"description": "빠르고 개인 정보 보호에 강한 임시 이메일 서비스",
+	"button": "이메일 받기",
+	"card_description": "이것은 임시 이메일입니다. 메일 목록은 10초마다 갱신됩니다",
+	"email_list": "메일 목록",
+	"email_empty": "메일 없음",
+	"email_detail": "메일 상세",
+	"custom_email": {
+		"label": "사용자 지정 주소",
+		"placeholder": "사용자명",
+		"hint": "비워두면 랜덤 주소가 생성됩니다.",
+		"error_taken": "이 주소는 이미 사용 중입니다. 다른 주소를 선택하세요.",
+		"error_invalid": "3-32자의 영문, 숫자, 점, 밑줄, 하이픈만 가능합니다."
+	},
+	"features": [
+		{
+			"title": "오픈 소스",
+			"description": "코드는 오픈 소스이며 GitHub에서 확인할 수 있습니다."
+		},
+		{
+			"title": "무료",
+			"description": "항상 무료입니다. 결제나 구독이 필요 없습니다."
+		},
+		{
+			"title": "간단함",
+			"description": "한 번의 클릭으로 임시 이메일을 받을 수 있습니다."
+		},
+		{
+			"title": "셀프 호스팅",
+			"description": "몇 분 만에 나만의 TempEmail을 구축할 수 있습니다."
+		}
+	],
+	"auth": {
+		"title": "관리자가 비밀번호 보호를 활성화했습니다. 비밀번호를 입력하세요:",
+		"msg": "비밀번호 오류",
+		"submit": "제출"
+	}
+}

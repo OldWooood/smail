@@ -4,8 +4,7 @@ import { format } from "date-fns";
 import { ArrowLeftIcon, MailOpenIcon } from "lucide-react";
 import { d1Wrapper } from "~/.server/db";
 import { sessionWrapper } from "~/.server/session";
-import { buttonVariants } from "~/components/ui/button";
-import { cn } from "~/lib/utils";
+import { Button } from "~/components/ui/button";
 import { getLocaleData } from "~/locales/locale";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
@@ -35,27 +34,43 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 export default function EmailDetail() {
 	const { locale, email } = useLoaderData<typeof loader>();
 	return (
-		<div className="max-w-2xl mx-auto flex flex-col flex-1 w-full min-h-0 px-2">
-			<div className="mx-auto bg-primary text-primary-foreground w-full max-w-2xl flex gap-2 items-center rounded-t p-2 px-4 border-muted">
-				<MailOpenIcon strokeWidth="1.5px" />
-				<span className="font-bold">{locale.email_detail}</span>
-				<div className="flex-1" />
-				<Link
-					prefetch="viewport"
-					viewTransition
-					className={cn(buttonVariants({ variant: "secondary", size: "sm" }))}
-					to="/"
-				>
-					<ArrowLeftIcon strokeWidth="1.5px" />
-				</Link>
+		<div className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-6 pb-10 pt-4 gap-6">
+			<div className="flex items-end justify-between border-b-2 border-foreground/10 pb-4">
+				<div className="flex items-center gap-4">
+					<div className="flex size-12 items-center justify-center border-2 border-foreground/10 bg-background shadow-[6px_6px_0_0_hsl(var(--foreground)/0.08)]">
+						<MailOpenIcon
+							strokeWidth="1.5px"
+							className="size-5 text-foreground"
+						/>
+					</div>
+					<div className="flex flex-col gap-2">
+						<span className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground">
+							{locale.email_detail}
+						</span>
+						<span className="font-display text-2xl uppercase tracking-[0.14em]">
+							Message
+						</span>
+					</div>
+				</div>
+				<Button asChild variant="outline" size="sm">
+					<Link prefetch="viewport" viewTransition to="/">
+						<ArrowLeftIcon strokeWidth="1.5px" />
+					</Link>
+				</Button>
 			</div>
-			<div className="flex-1 flex flex-col min-h-0 border-x px-2 gap-4">
-				<div className="line-clamp-2 font-bold">{email.subject}</div>
-				<div className="text-sm text-muted-foreground">{email.createdAt}</div>
+			<div className="flex flex-1 min-h-0 flex-col border-2 border-foreground/10 bg-card p-6 shadow-[10px_10px_0_0_hsl(var(--foreground)/0.08)]">
+				<div className="flex flex-col gap-2">
+					<div className="line-clamp-2 font-display text-xl uppercase tracking-[0.12em]">
+						{email.subject}
+					</div>
+					<div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+						{email.createdAt}
+					</div>
+				</div>
 				<iframe
 					title={email.subject || ""}
 					srcDoc={email.html || email.text || ""}
-					className="w-full h-full"
+					className="mt-6 min-h-0 flex-1 w-full border-2 border-foreground/10 bg-background"
 					sandbox="allow-scripts"
 				/>
 			</div>

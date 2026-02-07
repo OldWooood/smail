@@ -1,10 +1,27 @@
 import type { Config } from "tailwindcss";
+import tailwindAnimate from "tailwindcss-animate";
 
 export default {
 	darkMode: ["class"],
 	content: ["./app/**/{**,.client,.server}/**/*.{js,jsx,ts,tsx}"],
 	theme: {
 		extend: {
+			fontFamily: {
+				display: [
+					'"Archivo Black"',
+					'"Impact"',
+					'"Helvetica Neue"',
+					"Helvetica",
+					"sans-serif",
+				],
+				sans: [
+					'"Space Grotesk"',
+					'"Inter"',
+					'"Helvetica Neue"',
+					"Helvetica",
+					"sans-serif",
+				],
+			},
 			borderRadius: {
 				lg: "var(--radius)",
 				md: "calc(var(--radius) - 2px)",
@@ -13,6 +30,8 @@ export default {
 			colors: {
 				background: "hsl(var(--background))",
 				foreground: "hsl(var(--foreground))",
+				glass: "hsl(var(--glass))",
+				glassBorder: "hsl(var(--glass-border))",
 				card: {
 					DEFAULT: "hsl(var(--card))",
 					foreground: "hsl(var(--card-foreground))",
@@ -54,5 +73,5 @@ export default {
 			},
 		},
 	},
-	plugins: [require("tailwindcss-animate")],
+	plugins: [tailwindAnimate],
 } satisfies Config;

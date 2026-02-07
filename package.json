@@ -7,7 +7,7 @@
 		"build": "remix vite:build && wrangler pages functions build --outdir build/worker",
 		"deploy": "pnpm run build && wrangler deploy",
 		"dev": "remix vite:dev",
-		"lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
+		"lint": "ESLINT_USE_FLAT_CONFIG=false eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
 		"start": "wrangler pages dev ./build/client",
 		"typecheck": "tsc",
 		"typegen": "wrangler types",

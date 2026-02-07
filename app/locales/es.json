@@ -1,0 +1,39 @@
+{
+	"title": "Correo temporal",
+	"description": "Un servicio de correo temporal rapido y privado",
+	"button": "Obtener correo",
+	"card_description": "Este es tu correo temporal; la lista se actualiza cada 10 segundos",
+	"email_list": "Lista de correos",
+	"email_empty": "Sin correos",
+	"email_detail": "Detalle del correo",
+	"custom_email": {
+		"label": "Direccion personalizada",
+		"placeholder": "usuario",
+		"hint": "Deja en blanco para generar una direccion aleatoria.",
+		"error_taken": "Esta direccion ya esta ocupada. Elige otra.",
+		"error_invalid": "Solo 3-32 letras, numeros, puntos, guiones bajos o guiones."
+	},
+	"features": [
+		{
+			"title": "Codigo abierto",
+			"description": "Nuestro codigo es abierto, puedes verlo en GitHub."
+		},
+		{
+			"title": "Gratis",
+			"description": "Nuestro servicio siempre es gratuito. Sin pago, sin suscripcion."
+		},
+		{
+			"title": "Simple",
+			"description": "Con un clic, obtienes un correo temporal."
+		},
+		{
+			"title": "Auto hospedado",
+			"description": "Puedes desplegar tu propio TempEmail en pocos minutos."
+		}
+	],
+	"auth": {
+		"title": "El administrador activo la proteccion con contrasena. Ingresa la contrasena:",
+		"msg": "Contrasena incorrecta",
+		"submit": "Enviar"
+	}
+}

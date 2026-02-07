@@ -1,11 +1,18 @@
 {
-	"title": "smail",
-	"description": "免费开源的临时邮箱服务",
+	"title": "temp email",
+	"description": "快速、私密的临时邮箱服务",
 	"button": "获取邮箱",
 	"card_description": "这是你的临时邮箱, 邮件列表每10秒钟刷新",
 	"email_list": "邮件列表",
 	"email_empty": "暂无邮件",
 	"email_detail": "邮件详情",
+	"custom_email": {
+		"label": "自选邮箱前缀",
+		"placeholder": "用户名",
+		"hint": "留空将随机生成邮箱",
+		"error_taken": "该地址已被占用，请更换。",
+		"error_invalid": "仅支持 3-32 位字母、数字、点、下划线或短横线。"
+	},
 	"features": [
 		{
 			"title": "开源",
@@ -21,7 +28,7 @@
 		},
 		{
 			"title": "自部署",
-			"description": "您可以自己部署一个 smail 服务，只需要几分钟。"
+			"description": "您可以自己部署一个 TempEmail 服务，只需要几分钟。"
 		}
 	],
 	"auth": {

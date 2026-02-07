@@ -1,0 +1,39 @@
+{
+	"title": "Courriel temporaire",
+	"description": "Un service de courriel temporaire rapide et prive",
+	"button": "Obtenir un courriel",
+	"card_description": "Voici votre courriel temporaire, la liste se rafraichit toutes les 10 secondes",
+	"email_list": "Liste des courriels",
+	"email_empty": "Aucun courriel",
+	"email_detail": "Detail du courriel",
+	"custom_email": {
+		"label": "Adresse personnalisee",
+		"placeholder": "utilisateur",
+		"hint": "Laissez vide pour generer une adresse aleatoire.",
+		"error_taken": "Cette adresse est deja utilisee. Choisissez-en une autre.",
+		"error_invalid": "Seulement 3-32 lettres, chiffres, points, tirets bas ou tirets."
+	},
+	"features": [
+		{
+			"title": "Open source",
+			"description": "Notre code est open source, vous pouvez le voir sur GitHub."
+		},
+		{
+			"title": "Gratuit",
+			"description": "Notre service est toujours gratuit. Aucun paiement, aucun abonnement."
+		},
+		{
+			"title": "Simple",
+			"description": "Un clic suffit pour obtenir un courriel temporaire."
+		},
+		{
+			"title": "Auto heberge",
+			"description": "Vous pouvez deployer votre propre TempEmail en quelques minutes."
+		}
+	],
+	"auth": {
+		"title": "L administrateur a active la protection par mot de passe, veuillez saisir le mot de passe :",
+		"msg": "Mot de passe incorrect",
+		"submit": "Envoyer"
+	}
+}
