@@ -15,13 +15,13 @@
   <p>Use cloudflare worker to quickly build a temporary email service<p>
 </div>
 
-# Smail 📨
-- 📁Use cloudflare email worker to receive emails
-- 🖼Provide web application
-- 💡Simplify the application, deploy it from the beginning, only need one worker
+# TempEmail 📨
+- 📁Use Cloudflare Email Workers to receive emails
+- 🖼Provide a modern web application
+- 💡One worker to get started quickly
 
 ## Quick Start
-- Click [Smail](https://smail.pw) to start
+- Click [TempEmail](https://smail.pw) to start
 - Follow the instructions below to build your service
 
 ## Prerequisites
@@ -43,7 +43,5 @@ finished: visit your worker, you can customize the domain name for the worker as
 - Password protection: set PASSWORD in cf worker environment variables, access requires password
 
 ## Credits
+- This project is a fork of [Smail](https://github.com/akazwz/smail). Huge thanks to the original author.
 - [Email.ML](https://email.ml)
-
-## Star History
-[![Star History Chart](https://api.star-history.com/svg?repos=akazwz/smail&type=Date)](https://star-history.com/#akazwz/smail&Date)

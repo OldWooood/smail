@@ -15,13 +15,13 @@
   <p>使用 cloudflare worker 快速搭建临时邮箱服务<p>
 </div>
 
-# Smail 📨
-- 📁 使用 cloudflare email worker 接收邮件
-- 🖼 提供 web 应用
-- 💡 简化应用, 自己部署从未如此简单, 只需要一个 worker
+# TempEmail 📨
+- 📁 使用 Cloudflare Email Workers 接收邮件
+- 🖼 提供现代化 Web 应用
+- 💡 一个 worker 即可快速上手
 
 ## 快速开始
-- 点击 [Smail](https://smail.pw) 快速开始
+- 点击 [TempEmail](https://smail.pw) 快速开始
 - 根据以下文档自行搭建服务
 
 ## 自建前置条件
@@ -50,7 +50,5 @@
   ```
 
 ## 鸣谢
+- 本项目 Fork 自 [Smail](https://github.com/akazwz/smail)，感谢原作者的贡献。
 - [Email.ML](https://email.ml)
-
-## Star History
-[![Star History Chart](https://api.star-history.com/svg?repos=akazwz/smail&type=Date)](https://star-history.com/#akazwz/smail&Date)
