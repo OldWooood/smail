@@ -15,10 +15,11 @@ import {
 import randomName from "@scaleway/random-name";
 import { formatDistanceToNow } from "date-fns";
 import { enUS, zhCN } from "date-fns/locale";
+import { eq } from "drizzle-orm";
 import { Trash2Icon } from "lucide-react";
 import { customAlphabet } from "nanoid";
 import { useEffect, useRef, useState } from "react";
-import { d1Wrapper } from "~/.server/db";
+import { d1Wrapper, schema } from "~/.server/db";
 import { sessionWrapper } from "~/.server/session";
 import { AuthForm } from "~/components/auth-form";
 import { CopyButton } from "~/components/copy-button";
@@ -195,10 +196,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
 			if (!session.data.email) {
 				return null;
 			}
+			const email = session.data.email;
+			const db = d1Wrapper(context.cloudflare.env.DB);
+			await db.delete(schema.emails).where(eq(schema.emails.messageTo, email));
 			if (session.data.mailboxToken) {
 				await releaseMailbox(
 					context.cloudflare.env.KV,
-					session.data.email,
+					email,
 					session.data.mailboxToken,
 				);
 			}

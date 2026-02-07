@@ -23,9 +23,12 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 	if (!email) {
 		throw new Error("Email not found");
 	}
+	const senderAddress =
+		email.from?.address || email.sender?.address || email.messageFrom || "";
 	const newEmail = {
 		...email,
 		createdAt: format(email.createdAt, "yyyy/MM/dd HH:mm:ss"),
+		senderAddress,
 	};
 	const locale = await getLocaleData(params.lang || "en");
 	return { locale, email: newEmail };
@@ -58,11 +61,16 @@ export default function EmailDetail() {
 					</Link>
 				</Button>
 			</div>
-			<div className="flex flex-1 min-h-0 flex-col border-2 border-foreground/10 bg-card p-6 shadow-[10px_10px_0_0_hsl(var(--foreground)/0.08)]">
+			<div className="flex flex-1 min-h-0 flex-col border-2 border-foreground/10 bg-background/60 backdrop-blur-md p-6 shadow-[10px_10px_0_0_hsl(var(--foreground)/0.08)]">
 				<div className="flex flex-col gap-2">
 					<div className="line-clamp-2 font-display text-xl uppercase tracking-[0.12em]">
 						{email.subject}
 					</div>
+					{email.senderAddress ? (
+						<div className="text-xs tracking-[0.12em] text-foreground/70">
+							{email.senderAddress.toLowerCase()}
+						</div>
+					) : null}
 					<div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
 						{email.createdAt}
 					</div>
