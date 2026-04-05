@@ -1,12 +1,12 @@
 import { Link, Outlet, redirect, useLocation, useParams } from "@remix-run/react";
 import { match } from "@formatjs/intl-localematcher";
 import Negotiator from "negotiator";
-import { MailIcon } from "lucide-react";
-import { buttonVariants } from "~/components/ui/button";
+import { Mail, Moon, Sun } from "lucide-react";
 import { GitHubIcon } from "~/icons/github";
 import { cn } from "~/lib/utils";
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { sessionWrapper } from "~/.server/session";
+import { useEffect, useState } from "react";
 
 const localeOptions = [
 	{ code: "en", label: "EN", title: "English" },
@@ -47,6 +47,47 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 	return null;
 }
 
+function ThemeToggle() {
+	const [theme, setTheme] = useState<"light" | "dark">("dark");
+	const [mounted, setMounted] = useState(false);
+
+	useEffect(() => {
+		setMounted(true);
+		const saved = localStorage.getItem("theme") as "light" | "dark" | null;
+		if (saved) {
+			setTheme(saved);
+		} else {
+			const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+			setTheme(prefersDark ? "dark" : "light");
+		}
+	}, []);
+
+	useEffect(() => {
+		if (mounted) {
+			document.documentElement.classList.toggle("dark", theme === "dark");
+			localStorage.setItem("theme", theme);
+		}
+	}, [theme, mounted]);
+
+	if (!mounted) {
+		return (
+			<button className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/50 bg-background/50">
+				<Sun className="h-4 w-4" />
+			</button>
+		);
+	}
+
+	return (
+		<button
+			onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+			className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/50 bg-background/50 text-foreground/70 transition-all hover:bg-background hover:text-foreground"
+			aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+		>
+			{theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+		</button>
+	);
+}
+
 export default function HomeLayout() {
 	const location = useLocation();
 	const params = useParams();
@@ -65,29 +106,27 @@ export default function HomeLayout() {
 	};
 
 	return (
-		<div className="relative isolate h-dvh flex flex-col gap-6 overflow-hidden">
-			<div
-				aria-hidden
-				className="pointer-events-none absolute inset-0 z-0 app-gradient"
-			/>
-			<header className="sticky top-0 z-30 border-b-2 border-foreground/10 bg-background/80 backdrop-blur-sm">
-				<div className="flex items-center max-w-6xl mx-auto w-full px-6 py-5">
+		<div className="relative isolate min-h-screen flex flex-col overflow-hidden bg-background">
+			<div aria-hidden className="pointer-events-none fixed inset-0 z-0 app-gradient" />
+			
+			<header className="sticky top-0 z-50 w-full glass">
+				<div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
 					<Link to="/" className="group flex items-center gap-3">
-						<span className="flex size-12 items-center justify-center border-2 border-foreground/10 bg-background shadow-[6px_6px_0_0_hsl(var(--foreground)/0.08)] transition-transform duration-300 ease-out group-hover:-translate-y-0.5">
-							<MailIcon className="size-5 text-foreground" />
-						</span>
-						<div className="flex flex-col leading-none">
-							<span className="font-display text-xl font-black tracking-[0.18em] uppercase">
+						<div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/25 transition-transform duration-300 group-hover:scale-105">
+							<Mail className="h-5 w-5" />
+						</div>
+						<div className="flex flex-col">
+							<span className="text-lg font-bold tracking-tight text-foreground">
 								TempEmail
 							</span>
-							<span className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground">
+							<span className="text-[10px] font-medium text-muted-foreground">
 								Temporary Inbox
 							</span>
 						</div>
 					</Link>
-					<div className="flex-1" />
-					<div className="flex items-center gap-3">
-						<nav className="flex items-center gap-1 border-2 border-foreground/10 bg-background/80 px-1 py-1 shadow-[6px_6px_0_0_hsl(var(--foreground)/0.08)]">
+
+					<div className="flex items-center gap-2">
+						<nav className="hidden sm:flex items-center rounded-lg border border-border/50 bg-background/50 p-1">
 							{localeOptions.map((locale) => {
 								const isActive = locale.code === currentLang;
 								return (
@@ -98,10 +137,10 @@ export default function HomeLayout() {
 										aria-current={isActive ? "page" : undefined}
 										title={locale.title}
 										className={cn(
-											"px-2 py-1 text-[10px] font-black uppercase tracking-[0.22em] transition-colors",
+											"px-2.5 py-1 text-xs font-medium rounded-md transition-all",
 											isActive
-												? "bg-foreground text-background"
-												: "text-foreground/70 hover:bg-foreground/10",
+												? "bg-primary text-primary-foreground shadow-sm"
+												: "text-muted-foreground hover:text-foreground hover:bg-background"
 										)}
 									>
 										{locale.label}
@@ -109,26 +148,25 @@ export default function HomeLayout() {
 								);
 							})}
 						</nav>
-						<Link
-							to="https://github.com/OldWooood/smail"
-							target="_blank"
-							rel="noreferrer"
-							className={cn(
-								buttonVariants({
-									size: "icon",
-									variant: "outline",
-								}),
-								"rounded-none border-foreground/20",
-							)}
-						>
-							<GitHubIcon className="size-6" />
-						</Link>
+
+						<div className="flex items-center gap-2">
+							<ThemeToggle />
+							<Link
+								to="https://github.com/OldWooood/smail"
+								target="_blank"
+								rel="noreferrer"
+								className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/50 bg-background/50 text-foreground/70 transition-all hover:bg-background hover:text-foreground"
+							>
+								<GitHubIcon className="h-4 w-4" />
+							</Link>
+						</div>
 					</div>
 				</div>
 			</header>
-			<div className="relative z-20 flex-1 min-h-0">
+
+			<main className="relative z-10 flex-1">
 				<Outlet />
-			</div>
+			</main>
 		</div>
 	);
 }

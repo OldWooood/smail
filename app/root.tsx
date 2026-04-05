@@ -14,6 +14,8 @@ export const links: LinksFunction = () => [
 	{ rel: "icon", href: "/favicon.ico?v=2" },
 	{ rel: "apple-touch-icon", href: "/apple-touch-icon.png?v=2" },
 	{ rel: "manifest", href: "/site.webmanifest?v=2" },
+	{ rel: "preconnect", href: "https://fonts.googleapis.com" },
+	{ rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
 ];
 
 export async function loader({ params }: LoaderFunctionArgs) {
@@ -26,7 +28,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 	const { lang } = useLoaderData<typeof loader>();
 
 	return (
-		<html lang={lang}>
+		<html lang={lang} className="dark" suppressHydrationWarning>
 			<head>
 				<meta charSet="utf-8" />
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -35,31 +37,23 @@ export function Layout({ children }: { children: React.ReactNode }) {
 				<script
 					dangerouslySetInnerHTML={{
 						__html: `
-              if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                document.documentElement.classList.add('dark');
-              } else {
-                document.documentElement.classList.remove('dark');
-              }
-              window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-                if (e.matches) {
-                  document.documentElement.classList.add('dark');
-                } else {
-                  document.documentElement.classList.remove('dark');
-                }
-              });
-            `,
+							(function() {
+								function getTheme() {
+									const saved = localStorage.getItem('theme');
+									if (saved === 'dark' || saved === 'light') return saved;
+									return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+								}
+								const theme = getTheme();
+								document.documentElement.classList.toggle('dark', theme === 'dark');
+							})();
+						`,
 					}}
 				/>
 			</head>
-			<body>
+			<body className="min-h-screen">
 				{children}
 				<ScrollRestoration />
 				<Scripts />
-				<script
-					defer
-					src="https://u.pexni.com/script.js"
-					data-website-id="09979220-99e5-4973-b1b2-5e46163fe2d2"
-				/>
 			</body>
 		</html>
 	);

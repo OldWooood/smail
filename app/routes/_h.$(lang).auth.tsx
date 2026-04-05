@@ -9,10 +9,10 @@ import {
 	useLoaderData,
 	useNavigation,
 } from "@remix-run/react";
-import { LockKeyholeIcon } from "lucide-react";
+import { Lock, Loader2 } from "lucide-react";
 import { sessionWrapper } from "~/.server/session";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { getLocaleData } from "~/locales/locale";
@@ -47,38 +47,54 @@ export async function action({ request, context }: ActionFunctionArgs) {
 export default function Auth() {
 	const { locale } = useLoaderData<typeof loader>();
 	const actionData = useActionData<typeof action>();
-
 	const navigation = useNavigation();
 
 	return (
-		<div className="flex flex-1 items-start justify-center px-6 pt-10">
+		<div className="flex flex-1 items-center justify-center px-4 sm:px-6 py-12">
 			<Form method="POST" className="w-full max-w-md">
 				<Card>
-					<CardHeader className="gap-2 py-5">
-						<div className="flex items-center gap-3">
-							<div className="flex size-12 items-center justify-center border-2 border-foreground/10 bg-background shadow-[6px_6px_0_0_hsl(var(--foreground)/0.08)]">
-								<LockKeyholeIcon
-									strokeWidth="1.5px"
-									className="size-5 text-foreground"
-								/>
+					<CardHeader className="space-y-1">
+						<div className="flex items-center justify-center mb-4">
+							<div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+								<Lock className="h-8 w-8" />
 							</div>
-							<CardTitle className="font-display text-xl uppercase tracking-[0.12em]">
-								{locale.auth.title}
-							</CardTitle>
 						</div>
+						<CardTitle className="text-xl font-semibold text-center">
+							{locale.auth.title}
+						</CardTitle>
+						<CardDescription className="text-center">
+							Please enter the password to continue
+						</CardDescription>
 					</CardHeader>
-					<CardContent className="flex flex-col gap-4">
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="password">{locale.auth.title}</Label>
-							<Input id="password" name="password" type="password" required />
-							{actionData?.error && (
-								<div className="text-destructive text-xs">
-									{locale.auth.msg}
-								</div>
-							)}
+					<CardContent className="space-y-4">
+						<div className="space-y-2">
+							<Label htmlFor="password">Password</Label>
+							<Input 
+								id="password" 
+								name="password" 
+								type="password" 
+								placeholder="Enter password..."
+								required 
+							/>
 						</div>
-						<Button disabled={navigation.state === "submitting"}>
-							{locale.auth.submit}
+						{actionData?.error && (
+							<p className="text-sm text-destructive text-center">
+								{locale.auth.msg}
+							</p>
+						)}
+						<Button 
+							type="submit"
+							disabled={navigation.state === "submitting"}
+							className="w-full"
+						>
+							{navigation.state === "submitting" ? (
+								<>
+									<Loader2 className="h-4 w-4 animate-spin" />
+									Verifying...
+								</>
+							) : (
+								locale.auth.submit
+							)}
 						</Button>
 					</CardContent>
 				</Card>

@@ -1,10 +1,12 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
 import { format } from "date-fns";
-import { ArrowLeftIcon, MailOpenIcon } from "lucide-react";
+import { ArrowLeft, Mail, Clock, User } from "lucide-react";
 import { d1Wrapper } from "~/.server/db";
 import { sessionWrapper } from "~/.server/session";
 import { Button } from "~/components/ui/button";
+import { Card, CardContent, CardHeader } from "~/components/ui/card";
+import { ScrollArea } from "~/components/ui/scroll-area";
 import { getLocaleData } from "~/locales/locale";
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
@@ -36,51 +38,71 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 
 export default function EmailDetail() {
 	const { locale, email } = useLoaderData<typeof loader>();
+	
 	return (
-		<div className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-6 pb-10 pt-4 gap-6">
-			<div className="flex items-end justify-between border-b-2 border-foreground/10 pb-4">
-				<div className="flex items-center gap-4">
-					<div className="flex size-12 items-center justify-center border-2 border-foreground/10 bg-background shadow-[6px_6px_0_0_hsl(var(--foreground)/0.08)]">
-						<MailOpenIcon
-							strokeWidth="1.5px"
-							className="size-5 text-foreground"
-						/>
-					</div>
-					<div className="flex flex-col gap-2">
-						<span className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground">
-							{locale.email_detail}
-						</span>
-						<span className="font-display text-2xl uppercase tracking-[0.14em]">
-							Message
-						</span>
-					</div>
-				</div>
-				<Button asChild variant="outline" size="sm">
-					<Link prefetch="viewport" viewTransition to="/">
-						<ArrowLeftIcon strokeWidth="1.5px" />
-					</Link>
-				</Button>
-			</div>
-			<div className="flex flex-1 min-h-0 flex-col border-2 border-foreground/10 bg-background/60 backdrop-blur-md p-6 shadow-[10px_10px_0_0_hsl(var(--foreground)/0.08)]">
-				<div className="flex flex-col gap-2">
-					<div className="line-clamp-2 font-display text-xl uppercase tracking-[0.12em]">
-						{email.subject}
-					</div>
-					{email.senderAddress ? (
-						<div className="text-xs tracking-[0.12em] text-foreground/70">
-							{email.senderAddress.toLowerCase()}
+		<div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+			<div className="space-y-6">
+				<div className="flex items-center justify-between">
+					<div className="flex items-center gap-4">
+						<Button asChild variant="outline" size="icon" className="shrink-0">
+							<Link prefetch="viewport" viewTransition to="/">
+								<ArrowLeft className="h-4 w-4" />
+							</Link>
+						</Button>
+						<div>
+							<h1 className="text-xl font-semibold tracking-tight text-foreground">
+								{locale.email_detail}
+							</h1>
+							<p className="text-sm text-muted-foreground">
+								View email details
+							</p>
 						</div>
-					) : null}
-					<div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-						{email.createdAt}
 					</div>
 				</div>
-				<iframe
-					title={email.subject || ""}
-					srcDoc={email.html || email.text || ""}
-					className="mt-6 min-h-0 flex-1 w-full border-2 border-foreground/10 bg-background"
-					sandbox="allow-scripts"
-				/>
+
+				<Card className="overflow-hidden">
+					<CardHeader className="border-b border-border/50 bg-muted/30">
+						<div className="space-y-4">
+							<div className="flex items-start gap-3">
+								<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+									<Mail className="h-5 w-5" />
+								</div>
+								<div className="flex-1 min-w-0">
+									<h2 className="text-base font-semibold text-foreground leading-tight">
+										{email.subject || "(No Subject)"}
+									</h2>
+								</div>
+							</div>
+
+							<div className="flex flex-wrap items-center gap-4 text-sm">
+								{email.senderAddress && (
+									<div className="flex items-center gap-2 text-muted-foreground">
+										<User className="h-4 w-4" />
+										<span className="font-medium text-foreground">
+											{email.senderAddress.toLowerCase()}
+										</span>
+									</div>
+								)}
+								<div className="flex items-center gap-2 text-muted-foreground">
+									<Clock className="h-4 w-4" />
+									<span>{email.createdAt}</span>
+								</div>
+							</div>
+						</div>
+					</CardHeader>
+					
+					<CardContent className="p-0">
+						<ScrollArea className="h-[calc(100vh-320px)] min-h-[400px]">
+							<iframe
+								title={email.subject || "Email Content"}
+								srcDoc={email.html || email.text || ""}
+								className="w-full h-full min-h-[400px] bg-background"
+								sandbox="allow-scripts allow-same-origin"
+								loading="lazy"
+							/>
+						</ScrollArea>
+					</CardContent>
+				</Card>
 			</div>
 		</div>
 	);

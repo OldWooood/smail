@@ -1,78 +1,179 @@
-import { NavLink, useRevalidator } from "@remix-run/react";
-import { InboxIcon, RefreshCcw } from "lucide-react";
+import { NavLink, useParams } from "@remix-run/react";
+import { Inbox, RefreshCw, Mail } from "lucide-react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Button } from "~/components/ui/button";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import { cn } from "~/lib/utils";
 import type { Locale } from "~/locales/locale";
 
-interface EmailListProps {
-	emails: {
-		id: string;
-		subject: string | null;
-		createdAt: string;
-	}[];
-	locale: Locale;
-	revalidator: ReturnType<typeof useRevalidator>;
+interface Email {
+	id: string;
+	subject: string | null;
+	createdAt: string;
 }
 
-export function EmailList({ emails, locale, revalidator }: EmailListProps) {
+interface EmailListProps {
+	initialEmails: Email[];
+	locale: Locale;
+}
+
+const REFRESH_INTERVAL = 5000;
+
+export function EmailList({ initialEmails, locale }: EmailListProps) {
+	const params = useParams();
+	const [emails, setEmails] = useState<Email[]>(initialEmails);
+	const [isLoading, setIsLoading] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+	const previousEmailsLength = useRef(initialEmails.length);
+	const abortControllerRef = useRef<AbortController | null>(null);
+
+	const fetchEmails = useCallback(async () => {
+		if (abortControllerRef.current) {
+			abortControllerRef.current.abort();
+		}
+		
+		abortControllerRef.current = new AbortController();
+		setIsLoading(true);
+		setError(null);
+
+		try {
+			const langPrefix = params.lang ? `/${params.lang}` : "";
+			const response = await fetch(`${langPrefix}/api/emails`, {
+				signal: abortControllerRef.current.signal,
+			});
+
+			if (!response.ok) {
+				throw new Error("Failed to fetch emails");
+			}
+
+			const data = await response.json() as { emails: Email[] };
+			setEmails(data.emails);
+		} catch (err) {
+			if (err instanceof Error && err.name !== "AbortError") {
+				setError(err.message);
+				console.error("Failed to fetch emails:", err);
+			}
+		} finally {
+			setIsLoading(false);
+		}
+	}, [params.lang]);
+
+	// 自动刷新邮件列表
+	useEffect(() => {
+		const interval = setInterval(() => {
+			fetchEmails();
+		}, REFRESH_INTERVAL);
+
+		return () => {
+			clearInterval(interval);
+			if (abortControllerRef.current) {
+				abortControllerRef.current.abort();
+			}
+		};
+	}, [fetchEmails]);
+
+	// 新邮件通知
+	useEffect(() => {
+		if (emails.length > previousEmailsLength.current) {
+			if (Notification.permission === "granted") {
+				new Notification("New Email", {
+					body: "You have received a new email!",
+				});
+			}
+		}
+		previousEmailsLength.current = emails.length;
+	}, [emails.length]);
+
+	// 初始邮件变化时更新（用于首次加载或切换邮箱）
+	useEffect(() => {
+		setEmails(initialEmails);
+		previousEmailsLength.current = initialEmails.length;
+	}, [initialEmails]);
+
 	return (
 		<div className="flex flex-col w-full min-h-0 gap-4">
-			<div className="flex items-end justify-between border-b-2 border-foreground/10 pb-4">
-				<div className="flex flex-col gap-2">
-					<span className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground">
-						{locale.email_list}
-					</span>
-					<span className="font-display text-2xl uppercase tracking-[0.14em]">
-						{locale.email_list}
-					</span>
+			<div className="flex items-center justify-between">
+				<div className="flex items-center gap-3">
+					<div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+						<Mail className="h-5 w-5" />
+					</div>
+					<div className="flex flex-col">
+						<span className="text-sm font-semibold text-foreground">
+							{locale.email_list}
+						</span>
+						<span className="text-xs text-muted-foreground">
+							{emails.length} {emails.length === 1 ? "email" : "emails"}
+						</span>
+					</div>
 				</div>
-				<Button size="sm" variant="outline" onClick={revalidator.revalidate}>
-					<RefreshCcw
-						strokeWidth="1.5px"
-						className={cn({
-							"animate-spin": revalidator.state === "loading",
-						})}
-					/>
-				</Button>
+				<div className="flex items-center gap-2">
+					{error && (
+						<span className="text-xs text-destructive hidden sm:inline">
+							Failed to refresh
+						</span>
+					)}
+					<Button
+						size="sm"
+						variant="outline"
+						onClick={fetchEmails}
+						disabled={isLoading}
+						className="gap-2"
+					>
+						<RefreshCw
+							className={cn("h-4 w-4", {
+								"animate-spin": isLoading,
+							})}
+						/>
+						<span className="hidden sm:inline">Refresh</span>
+					</Button>
+				</div>
 			</div>
-			<div className="flex-1 min-h-0 border-2 border-foreground/10 bg-transparent shadow-[8px_8px_0_0_hsl(var(--foreground)/0.08)]">
-				<ScrollArea className="h-full">
-					{emails.length === 0 && (
-						<div className="flex flex-col w-full items-center py-16">
-							<InboxIcon
-								strokeWidth="1px"
-								className="size-20 text-muted-foreground"
-							/>
-							<div className="text-center text-xs uppercase tracking-[0.18em] text-muted-foreground">
-								{locale.email_empty}
+
+			<div className="flex-1 min-h-0 rounded-xl border border-border/50 bg-card card-shadow overflow-hidden">
+				<ScrollArea className="h-full max-h-[500px] custom-scrollbar">
+					{emails.length === 0 ? (
+						<div className="flex flex-col items-center justify-center py-16 px-4">
+							<div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted mb-4">
+								<Inbox className="h-8 w-8 text-muted-foreground/50" />
 							</div>
+							<p className="text-sm font-medium text-muted-foreground">
+								{locale.email_empty}
+							</p>
+							<p className="text-xs text-muted-foreground/60 mt-1">
+								Waiting for incoming emails...
+							</p>
+						</div>
+					) : (
+						<div className="divide-y divide-border/50">
+							{emails.map((email) => (
+								<NavLink
+									prefetch="viewport"
+									viewTransition
+									to={`/emails/${email.id}`}
+									key={email.id}
+									className={({ isActive }) =>
+										cn(
+											"flex items-center gap-4 px-4 py-4 transition-all duration-200",
+											"hover:bg-muted/50",
+											isActive && "bg-primary/5 border-l-4 border-l-primary pl-3"
+										)
+									}
+								>
+									<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+										<Mail className="h-4 w-4" />
+									</div>
+									<div className="flex-1 min-w-0">
+										<p className="text-sm font-medium text-foreground truncate">
+											{email.subject || "(No Subject)"}
+										</p>
+									</div>
+									<span className="shrink-0 text-xs text-muted-foreground whitespace-nowrap">
+										{email.createdAt}
+									</span>
+								</NavLink>
+							))}
 						</div>
 					)}
-					{emails.map((email) => (
-						<NavLink
-							prefetch="viewport"
-							viewTransition
-							to={`/emails/${email.id}`}
-							key={email.id}
-							className={({ isActive }) =>
-								cn(
-									"flex w-full items-center gap-3 px-5 py-4 text-xs uppercase tracking-[0.12em] transition-colors",
-									"border-b-2 border-foreground/10 last:border-b-0",
-									"hover:bg-foreground/5",
-									isActive && "bg-foreground text-background",
-								)
-							}
-						>
-							<span className="truncate max-w-xs md:max-w-md">
-								{email.subject}
-							</span>
-							<div className="flex-1" />
-							<span className="shrink-0 text-[10px] text-muted-foreground">
-								{email.createdAt}
-							</span>
-						</NavLink>
-					))}
 				</ScrollArea>
 			</div>
 		</div>

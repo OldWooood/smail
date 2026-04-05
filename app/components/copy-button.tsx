@@ -1,13 +1,24 @@
-import { CheckIcon, ClipboardIcon } from "lucide-react";
-import { useState } from "react";
+import { Check, Copy } from "lucide-react";
+import { useState, type ReactNode } from "react";
 import { Button } from "~/components/ui/button";
+import { cn } from "~/lib/utils";
 
-export function CopyButton({ content }: { content: string }) {
+interface CopyButtonProps {
+	content: string;
+	children?: ReactNode;
+	className?: string;
+	variant?: "default" | "secondary" | "outline" | "ghost";
+	size?: "default" | "sm" | "lg" | "icon";
+}
+
+export function CopyButton({ 
+	content, 
+	children,
+	className,
+	variant = "secondary",
+	size = "default"
+}: CopyButtonProps) {
 	const [status, setStatus] = useState<"idle" | "copied">("idle");
-	const icons = {
-		idle: <ClipboardIcon strokeWidth="1.5px" />,
-		copied: <CheckIcon strokeWidth="1.5px" />,
-	};
 
 	async function copy() {
 		try {
@@ -16,13 +27,23 @@ export function CopyButton({ content }: { content: string }) {
 		} catch (error) {
 			console.error(error);
 		} finally {
-			setTimeout(() => setStatus("idle"), 1000);
+			setTimeout(() => setStatus("idle"), 2000);
 		}
 	}
 
 	return (
-		<Button variant="secondary" onClick={copy}>
-			{icons[status]}
+		<Button 
+			variant={variant} 
+			size={size}
+			onClick={copy}
+			className={cn("gap-2 transition-all duration-200", className)}
+		>
+			{status === "copied" ? (
+				<Check className="h-4 w-4 text-emerald-500" />
+			) : (
+				<Copy className="h-4 w-4" />
+			)}
+			{children}
 		</Button>
 	);
 }

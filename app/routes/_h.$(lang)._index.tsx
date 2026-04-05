@@ -10,15 +10,14 @@ import {
 	useActionData,
 	useLoaderData,
 	useNavigation,
-	useRevalidator,
 } from "@remix-run/react";
 import randomName from "@scaleway/random-name";
 import { formatDistanceToNow } from "date-fns";
 import { enUS, zhCN } from "date-fns/locale";
 import { eq } from "drizzle-orm";
-import { Trash2Icon } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { customAlphabet } from "nanoid";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { d1Wrapper, schema } from "~/.server/db";
 import { sessionWrapper } from "~/.server/session";
 import { AuthForm } from "~/components/auth-form";
@@ -28,6 +27,7 @@ import { FeatureList } from "~/components/feature-list";
 import { Button } from "~/components/ui/button";
 import {
 	Card,
+	CardContent,
 	CardDescription,
 	CardFooter,
 	CardHeader,
@@ -35,14 +35,13 @@ import {
 } from "~/components/ui/card";
 import { getLocaleData } from "~/locales/locale";
 
-const REFRESH_INTERVAL = 10_000;
 const EMAIL_LIST_LIMIT = 50;
 const MAILBOX_PREFIX = "mailbox:";
 const MAILBOX_TTL_SECONDS = 60 * 60 * 24;
 
 const tokenAlphabet = customAlphabet(
 	"abcdefghijklmnopqrstuvwxyz0123456789",
-	12,
+	12
 );
 const numericSuffix = customAlphabet("0123456789", 4);
 
@@ -91,7 +90,7 @@ async function releaseMailbox(kv: KVNamespace, email: string, token: string) {
 
 function formatEmailList<T extends { createdAt: Date }>(
 	emailList: T[],
-	lang: string,
+	lang: string
 ) {
 	return emailList.map((email) => ({
 		...email,
@@ -104,7 +103,7 @@ function formatEmailList<T extends { createdAt: Date }>(
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => [
 	{ rel: "preconnect", href: "https://challenges.cloudflare.com" },
-	{ title: "TempEmail" },
+	{ title: "TempEmail - Temporary Email Service" },
 	{
 		name: "description",
 		content: data?.locale.description,
@@ -120,36 +119,32 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 	]);
 	const domain = getDomain(context.cloudflare.env);
 	const email = session.data.email;
-	if (!email) {
-		return {
-			lang,
-			locale,
-			domain,
-			email: null,
-			emails: [],
-			turnstileSiteKey: context.cloudflare.env.TURNSTILE_SITE_KEY,
-		};
+
+	// 只加载初始邮件列表
+	let emails: { id: string; subject: string | null; createdAt: string }[] = [];
+	if (email) {
+		const db = d1Wrapper(context.cloudflare.env.DB);
+		const emailData = await db.query.emails.findMany({
+			columns: {
+				id: true,
+				subject: true,
+				createdAt: true,
+			},
+			where: (emails, { eq }) => eq(emails.messageTo, email),
+			limit: EMAIL_LIST_LIMIT,
+			orderBy(fields, operators) {
+				return [operators.desc(fields.createdAt)];
+			},
+		});
+		emails = formatEmailList(emailData, lang);
 	}
-	const db = d1Wrapper(context.cloudflare.env.DB);
-	const emails = await db.query.emails.findMany({
-		columns: {
-			id: true,
-			subject: true,
-			createdAt: true,
-		},
-		where: (emails, { eq }) => eq(emails.messageTo, email),
-		limit: EMAIL_LIST_LIMIT,
-		orderBy(fields, operators) {
-			return [operators.desc(fields.createdAt)];
-		},
-	});
-	const formattedEmails = formatEmailList(emails, lang);
+
 	return {
 		lang,
 		locale,
 		domain,
 		email,
-		emails: formattedEmails,
+		emails,
 		turnstileSiteKey: context.cloudflare.env.TURNSTILE_SITE_KEY,
 	};
 }
@@ -170,7 +165,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 			if (rawLocalPart && !normalizedLocal) {
 				return json<ActionData>(
 					{ error: "invalid_local", localPart: rawLocalPart },
-					{ status: 400 },
+					{ status: 400 }
 				);
 			}
 
@@ -180,7 +175,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 			if (!token) {
 				return json<ActionData>(
 					{ error: "email_taken", localPart: rawLocalPart },
-					{ status: 409 },
+					{ status: 409 }
 				);
 			}
 
@@ -203,7 +198,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 				await releaseMailbox(
 					context.cloudflare.env.KV,
 					email,
-					session.data.mailboxToken,
+					session.data.mailboxToken
 				);
 			}
 			session.unset("email");
@@ -227,106 +222,93 @@ export default function Index() {
 
 	const [token, setToken] = useState("");
 
-	const revalidator = useRevalidator();
-	const previousEmailsLength = useRef(emails.length);
-
-	useEffect(() => {
-		if (email && Notification.permission === "default") {
-			Notification.requestPermission();
-		}
-	}, [email]);
-
-	useEffect(() => {
-		if (emails.length > previousEmailsLength.current) {
-			if (Notification.permission === "granted") {
-				new Notification("New Email", {
-					body: "You have received a new email!",
-				});
-			}
-		}
-		previousEmailsLength.current = emails.length;
-	}, [emails]);
-
-	useEffect(() => {
-		const interval = setInterval(() => {
-			revalidator.revalidate();
-		}, REFRESH_INTERVAL);
-		return () => clearInterval(interval);
-	}, [revalidator]);
-
 	return (
-		<div className="mx-auto flex w-full max-w-6xl flex-1 flex-col min-h-0 px-6 pb-10 pt-4">
-			<div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr]">
-				<section className="space-y-8">
-					<div className="border-b-2 border-foreground/10 pb-6">
-						<div className="text-[10px] uppercase tracking-[0.45em] text-muted-foreground">
+		<div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+			<div className="grid gap-8 lg:grid-cols-[1fr_400px]">
+				<section className="space-y-6">
+					<div className="space-y-4">
+						<div className="inline-flex items-center gap-2 rounded-full border border-border/50 bg-background/50 px-3 py-1 text-xs font-medium text-muted-foreground">
+							<span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
 							{locale.title}
 						</div>
-						<h1 className="mt-3 font-display text-4xl font-black leading-none tracking-[0.12em] uppercase sm:text-5xl">
-							{locale.title}
+						<h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+							Temporary Email
+							<span className="gradient-text"> Service</span>
 						</h1>
-						<p className="mt-4 max-w-xl text-base text-foreground/80">
+						<p className="text-base text-muted-foreground max-w-lg">
 							{locale.description}
 						</p>
 					</div>
-					<div className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-300">
+
+					<div className="animate-fade-in">
 						{email ? (
 							<EmailList
-								emails={emails}
+								initialEmails={emails}
 								locale={locale}
-								revalidator={revalidator}
 							/>
 						) : (
 							<FeatureList locale={locale} />
 						)}
 					</div>
 				</section>
-				<section className="space-y-6">
-					<div className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-300">
+
+				<section className="lg:sticky lg:top-24 lg:self-start space-y-6">
+					<div className="animate-slide-up">
 						{email ? (
-							<Card className="bg-transparent">
-								<CardHeader className="py-5">
-									<CardTitle className="font-display text-2xl font-black tracking-[0.04em]">
-										{displayEmail}
-									</CardTitle>
-									<CardDescription className="text-sm font-medium text-foreground/70">
-										{locale.card_description}
-									</CardDescription>
+							<Card>
+								<CardHeader>
+									<div className="flex items-center gap-3">
+										<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary">
+											<span className="text-lg font-bold">@</span>
+										</div>
+										<div className="flex-1 min-w-0">
+											<CardTitle className="text-base font-semibold truncate">
+												{displayEmail}
+											</CardTitle>
+											<CardDescription>
+												{locale.card_description}
+											</CardDescription>
+										</div>
+									</div>
 								</CardHeader>
-								<CardFooter className="gap-4 px-5 pb-5">
-									<CopyButton content={displayEmail || ""} />
-									<Form method="DELETE">
+								<CardFooter>
+									<CopyButton content={displayEmail || ""}>
+										Copy Email
+									</CopyButton>
+									<Form method="DELETE" className="ml-auto">
 										<Button
-											variant="secondary"
+											variant="destructive"
+											size="sm"
 											type="submit"
 											disabled={navigation.formMethod === "DELETE"}
 										>
-											<Trash2Icon
-												strokeWidth="1.5px"
-												className="text-destructive"
-											/>
+											<Trash2 className="h-4 w-4" />
 										</Button>
 									</Form>
 								</CardFooter>
 							</Card>
 						) : (
-							<AuthForm
-								turnstileSiteKey={turnstileSiteKey}
-								lang={lang}
-								locale={locale}
-								domain={domain}
-								navigation={navigation}
-								setToken={setToken}
-								token={token}
-								defaultLocalPart={actionData?.localPart}
-								emailError={
-									actionData?.error === "email_taken"
-										? locale.custom_email.error_taken
-										: actionData?.error === "invalid_local"
-											? locale.custom_email.error_invalid
-											: undefined
-								}
-							/>
+							<Card>
+								<CardContent className="pt-6">
+									<AuthForm
+										turnstileSiteKey={turnstileSiteKey}
+										lang={lang}
+										locale={locale}
+										domain={domain}
+										navigation={navigation}
+										setToken={setToken}
+										token={token}
+										defaultLocalPart={actionData?.localPart}
+										emailError={
+											actionData?.error === "email_taken"
+												? locale.custom_email.error_taken
+												: actionData?.error === "invalid_local"
+													? locale.custom_email.error_invalid
+													: undefined
+										}
+									/>
+								</CardContent>
+							</Card>
 						)}
 					</div>
 				</section>
