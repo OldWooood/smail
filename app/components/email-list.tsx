@@ -37,8 +37,7 @@ export function EmailList({ initialEmails, locale }: EmailListProps) {
 		setError(null);
 
 		try {
-			const langPrefix = params.lang ? `/${params.lang}` : "";
-			const response = await fetch(`${langPrefix}/api/emails`, {
+			const response = await fetch(`/api/emails`, {
 				signal: abortControllerRef.current.signal,
 			});
 
