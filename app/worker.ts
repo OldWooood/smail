@@ -2,14 +2,15 @@ import PagesFunction from "build/worker";
 import PostalMime from "postal-mime";
 import { d1Wrapper, schema } from "./.server/db";
 
+const postalMime = new PostalMime();
+
 export default {
 	fetch: PagesFunction.fetch,
 	async email(message: ForwardableEmailMessage, env: Env) {
 		const text = await new Response(message.raw).text();
-		const postalMime = new PostalMime();
 		const mail = await postalMime.parse(text);
 		const db = d1Wrapper(env.DB);
-		const domain = message.from.split("@")[1];
+		const domain = message.from?.split("@")?.[1] || "";
 		await db.insert(schema.emails).values({
 			domain,
 			messageFrom: message.from,

@@ -11,12 +11,17 @@ type SessionData = {
 
 const DEFAULT_COOKIE_SECRET = "defalt_secret";
 
+let storage: ReturnType<typeof createWorkersKVSessionStorage<SessionData>> | null = null;
+
 export function sessionWrapper(env: Env) {
-	const sessionCookie = cookieWrapper(env);
-	return createWorkersKVSessionStorage<SessionData>({
-		kv: env.KV,
-		cookie: sessionCookie,
-	});
+	if (!storage) {
+		const sessionCookie = cookieWrapper(env);
+		storage = createWorkersKVSessionStorage<SessionData>({
+			kv: env.KV,
+			cookie: sessionCookie,
+		});
+	}
+	return storage;
 }
 
 export function cookieWrapper(env: Env) {

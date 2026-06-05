@@ -24,21 +24,35 @@ export interface Locale {
 	};
 }
 
+const localeCache = new Map<string, Locale>();
+
 export async function getLocaleData(lang: string): Promise<Locale> {
+	const cached = localeCache.get(lang);
+	if (cached) return cached;
+	let data: Locale;
 	switch (lang) {
 		case "en":
-			return import("./en.json").then((m) => m.default);
+			data = (await import("./en.json")).default;
+			break;
 		case "es":
-			return import("./es.json").then((m) => m.default);
+			data = (await import("./es.json")).default;
+			break;
 		case "fr":
-			return import("./fr.json").then((m) => m.default);
+			data = (await import("./fr.json")).default;
+			break;
 		case "ja":
-			return import("./ja.json").then((m) => m.default);
+			data = (await import("./ja.json")).default;
+			break;
 		case "ko":
-			return import("./ko.json").then((m) => m.default);
+			data = (await import("./ko.json")).default;
+			break;
 		case "zh-CN":
-			return import("./zh-CN.json").then((m) => m.default);
+			data = (await import("./zh-CN.json")).default;
+			break;
 		default:
-			return import("./en.json").then((m) => m.default);
+			data = (await import("./en.json")).default;
+			break;
 	}
+	localeCache.set(lang, data);
+	return data;
 }

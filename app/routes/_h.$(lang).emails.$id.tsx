@@ -97,7 +97,7 @@ export default function EmailDetail() {
 								title={email.subject || "Email Content"}
 								srcDoc={email.html || email.text || ""}
 								className="w-full h-full min-h-[400px] bg-background"
-								sandbox="allow-scripts allow-same-origin"
+								sandbox="allow-scripts"
 								loading="lazy"
 							/>
 						</ScrollArea>

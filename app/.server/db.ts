@@ -3,8 +3,11 @@ import * as s from "~/drizzle/schema";
 
 export const schema = s;
 
+let db: ReturnType<typeof drizzle> | null = null;
+
 export function d1Wrapper(d1: D1Database) {
-	return drizzle(d1, {
-		schema,
-	});
+	if (!db) {
+		db = drizzle(d1, { schema });
+	}
+	return db;
 }

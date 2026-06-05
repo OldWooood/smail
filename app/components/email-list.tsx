@@ -1,4 +1,4 @@
-import { NavLink, useParams } from "@remix-run/react";
+import { NavLink } from "@remix-run/react";
 import { Inbox, RefreshCw, Mail } from "lucide-react";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Button } from "~/components/ui/button";
@@ -19,19 +19,24 @@ interface EmailListProps {
 
 const REFRESH_INTERVAL = 5000;
 
+function emailsChanged(a: Email[], b: Email[]) {
+	if (a.length !== b.length) return true;
+	return a.some((email, i) => email.id !== b[i].id);
+}
+
 export function EmailList({ initialEmails, locale }: EmailListProps) {
-	const params = useParams();
 	const [emails, setEmails] = useState<Email[]>(initialEmails);
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const previousEmailsLength = useRef(initialEmails.length);
 	const abortControllerRef = useRef<AbortController | null>(null);
+	const isVisibleRef = useRef(true);
 
 	const fetchEmails = useCallback(async () => {
 		if (abortControllerRef.current) {
 			abortControllerRef.current.abort();
 		}
-		
+
 		abortControllerRef.current = new AbortController();
 		setIsLoading(true);
 		setError(null);
@@ -46,7 +51,9 @@ export function EmailList({ initialEmails, locale }: EmailListProps) {
 			}
 
 			const data = await response.json() as { emails: Email[] };
-			setEmails(data.emails);
+			setEmails((prev) =>
+				emailsChanged(prev, data.emails) ? data.emails : prev
+			);
 		} catch (err) {
 			if (err instanceof Error && err.name !== "AbortError") {
 				setError(err.message);
@@ -55,23 +62,36 @@ export function EmailList({ initialEmails, locale }: EmailListProps) {
 		} finally {
 			setIsLoading(false);
 		}
-	}, [params.lang]);
+	}, []);
 
-	// 自动刷新邮件列表
 	useEffect(() => {
 		const interval = setInterval(() => {
-			fetchEmails();
+			if (isVisibleRef.current) {
+				fetchEmails();
+			}
 		}, REFRESH_INTERVAL);
+
+		const onVisibility = () => {
+			isVisibleRef.current = !document.hidden;
+			if (document.hidden) {
+				if (abortControllerRef.current) {
+					abortControllerRef.current.abort();
+				}
+			} else {
+				fetchEmails();
+			}
+		};
+		document.addEventListener("visibilitychange", onVisibility);
 
 		return () => {
 			clearInterval(interval);
+			document.removeEventListener("visibilitychange", onVisibility);
 			if (abortControllerRef.current) {
 				abortControllerRef.current.abort();
 			}
 		};
 	}, [fetchEmails]);
 
-	// 新邮件通知
 	useEffect(() => {
 		if (emails.length > previousEmailsLength.current) {
 			if (Notification.permission === "granted") {
@@ -83,7 +103,6 @@ export function EmailList({ initialEmails, locale }: EmailListProps) {
 		previousEmailsLength.current = emails.length;
 	}, [emails.length]);
 
-	// 初始邮件变化时更新（用于首次加载或切换邮箱）
 	useEffect(() => {
 		setEmails(initialEmails);
 		previousEmailsLength.current = initialEmails.length;

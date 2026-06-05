@@ -12,8 +12,6 @@ import {
 	useNavigation,
 } from "@remix-run/react";
 import randomName from "@scaleway/random-name";
-import { formatDistanceToNow } from "date-fns";
-import { enUS, zhCN } from "date-fns/locale";
 import { eq } from "drizzle-orm";
 import { Trash2 } from "lucide-react";
 import { customAlphabet } from "nanoid";
@@ -23,7 +21,6 @@ import { sessionWrapper } from "~/.server/session";
 import { AuthForm } from "~/components/auth-form";
 import { CopyButton } from "~/components/copy-button";
 import { EmailList } from "~/components/email-list";
-import { FeatureList } from "~/components/feature-list";
 import { Button } from "~/components/ui/button";
 import {
 	Card,
@@ -33,6 +30,12 @@ import {
 	CardHeader,
 	CardTitle,
 } from "~/components/ui/card";
+import { HeroSection } from "~/components/marketing/hero-section";
+import { FeaturesSection } from "~/components/marketing/features-section";
+import { HowItWorks } from "~/components/marketing/how-it-works";
+import { OssSection } from "~/components/marketing/oss-section";
+import { Footer } from "~/components/marketing/footer";
+import { formatEmailList } from "~/lib/email";
 import { getLocaleData } from "~/locales/locale";
 
 const EMAIL_LIST_LIMIT = 50;
@@ -86,19 +89,6 @@ async function releaseMailbox(kv: KVNamespace, email: string, token: string) {
 	if (existing === token) {
 		await kv.delete(key);
 	}
-}
-
-function formatEmailList<T extends { createdAt: Date }>(
-	emailList: T[],
-	lang: string
-) {
-	return emailList.map((email) => ({
-		...email,
-		createdAt: formatDistanceToNow(email.createdAt, {
-			addSuffix: true,
-			locale: lang === "en" ? enUS : zhCN,
-		}),
-	}));
 }
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => [
@@ -223,96 +213,79 @@ export default function Index() {
 	const [token, setToken] = useState("");
 
 	return (
-		<div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-			<div className="grid gap-8 lg:grid-cols-[1fr_400px]">
-				<section className="space-y-6">
-					<div className="space-y-4">
-						<div className="inline-flex items-center gap-2 rounded-full border border-border/50 bg-background/50 px-3 py-1 text-xs font-medium text-muted-foreground">
-							<span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-							{locale.title}
-						</div>
-						<h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
-							Temporary Email
-							<span className="gradient-text"> Service</span>
-						</h1>
-						<p className="text-base text-muted-foreground max-w-lg">
-							{locale.description}
-						</p>
-					</div>
-
-					<div className="animate-fade-in">
-						{email ? (
-							<EmailList
-								initialEmails={emails}
+		<>
+			<HeroSection>
+				{email ? (
+					<Card className="card-shadow">
+						<CardHeader>
+							<div className="flex items-center gap-3">
+								<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary">
+									<span className="text-lg font-bold">@</span>
+								</div>
+								<div className="flex-1 min-w-0">
+									<CardTitle className="text-base font-semibold truncate">
+										{displayEmail}
+									</CardTitle>
+									<CardDescription>
+										{locale.card_description}
+									</CardDescription>
+								</div>
+							</div>
+						</CardHeader>
+						<CardFooter>
+							<CopyButton content={displayEmail || ""}>
+								Copy Email
+							</CopyButton>
+							<Form method="DELETE" className="ml-auto">
+								<Button
+									variant="destructive"
+									size="sm"
+									type="submit"
+									disabled={navigation.formMethod === "DELETE"}
+								>
+									<Trash2 className="h-4 w-4" />
+								</Button>
+							</Form>
+						</CardFooter>
+					</Card>
+				) : (
+					<Card>
+						<CardContent className="pt-6">
+							<AuthForm
+								turnstileSiteKey={turnstileSiteKey}
+								lang={lang}
 								locale={locale}
+								domain={domain}
+								navigation={navigation}
+								setToken={setToken}
+								token={token}
+								defaultLocalPart={actionData?.localPart}
+								emailError={
+									actionData?.error === "email_taken"
+										? locale.custom_email.error_taken
+										: actionData?.error === "invalid_local"
+											? locale.custom_email.error_invalid
+											: undefined
+								}
 							/>
-						) : (
-							<FeatureList locale={locale} />
-						)}
-					</div>
-				</section>
+						</CardContent>
+					</Card>
+				)}
+			</HeroSection>
 
-				<section className="lg:sticky lg:top-24 lg:self-start space-y-6">
-					<div className="animate-slide-up">
-						{email ? (
-							<Card>
-								<CardHeader>
-									<div className="flex items-center gap-3">
-										<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary">
-											<span className="text-lg font-bold">@</span>
-										</div>
-										<div className="flex-1 min-w-0">
-											<CardTitle className="text-base font-semibold truncate">
-												{displayEmail}
-											</CardTitle>
-											<CardDescription>
-												{locale.card_description}
-											</CardDescription>
-										</div>
-									</div>
-								</CardHeader>
-								<CardFooter>
-									<CopyButton content={displayEmail || ""}>
-										Copy Email
-									</CopyButton>
-									<Form method="DELETE" className="ml-auto">
-										<Button
-											variant="destructive"
-											size="sm"
-											type="submit"
-											disabled={navigation.formMethod === "DELETE"}
-										>
-											<Trash2 className="h-4 w-4" />
-										</Button>
-									</Form>
-								</CardFooter>
-							</Card>
-						) : (
-							<Card>
-								<CardContent className="pt-6">
-									<AuthForm
-										turnstileSiteKey={turnstileSiteKey}
-										lang={lang}
-										locale={locale}
-										domain={domain}
-										navigation={navigation}
-										setToken={setToken}
-										token={token}
-										defaultLocalPart={actionData?.localPart}
-										emailError={
-											actionData?.error === "email_taken"
-												? locale.custom_email.error_taken
-												: actionData?.error === "invalid_local"
-													? locale.custom_email.error_invalid
-													: undefined
-										}
-									/>
-								</CardContent>
-							</Card>
-						)}
+			{email ? (
+				<section className="py-12 sm:py-16">
+					<div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+						<EmailList initialEmails={emails} locale={locale} />
 					</div>
 				</section>
-			</div>
-		</div>
+			) : (
+				<FeaturesSection locale={locale} />
+			)}
+
+			<HowItWorks />
+			<OssSection />
+			<Footer />
+		</>
 	);
 }

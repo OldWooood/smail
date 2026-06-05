@@ -183,4 +183,37 @@ body {
 	.custom-scrollbar::-webkit-scrollbar-thumb:hover {
 		background: hsl(var(--muted-foreground) / 0.5);
 	}
+
+	.animate-reveal {
+		animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+	}
+
+	.animate-reveal.delay-100 { animation-delay: 0.1s; }
+	.animate-reveal.delay-200 { animation-delay: 0.2s; }
+	.animate-reveal.delay-300 { animation-delay: 0.3s; }
+	.animate-reveal.delay-400 { animation-delay: 0.4s; }
+	.animate-reveal.delay-500 { animation-delay: 0.5s; }
+
+	@keyframes fadeInUp {
+		from { opacity: 0; transform: translateY(24px); }
+		to { opacity: 1; transform: translateY(0); }
+	}
+
+	.animate-scale-in {
+		animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+	}
+
+	@keyframes scaleIn {
+		from { opacity: 0; transform: scale(0.95); }
+		to { opacity: 1; transform: scale(1); }
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.animate-reveal,
+		.animate-scale-in,
+		.animate-fade-in,
+		.animate-slide-up {
+			animation: none;
+		}
+	}
 }

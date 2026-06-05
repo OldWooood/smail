@@ -1,24 +1,10 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { formatDistanceToNow } from "date-fns";
-import { enUS, zhCN } from "date-fns/locale";
 import { d1Wrapper } from "~/.server/db";
 import { sessionWrapper } from "~/.server/session";
+import { formatEmailList } from "~/lib/email";
 
 const EMAIL_LIST_LIMIT = 50;
-
-function formatEmailList<T extends { createdAt: Date }>(
-	emailList: T[],
-	lang: string
-) {
-	return emailList.map((email) => ({
-		...email,
-		createdAt: formatDistanceToNow(email.createdAt, {
-			addSuffix: true,
-			locale: lang === "en" ? enUS : zhCN,
-		}),
-	}));
-}
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
 	const { getSession } = sessionWrapper(context.cloudflare.env);
