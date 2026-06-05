@@ -214,73 +214,75 @@ export default function Index() {
 
 	return (
 		<>
-			<HeroSection>
-				{email ? (
-					<Card className="card-shadow">
-						<CardHeader>
-							<div className="flex items-center gap-3">
-								<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary">
-									<span className="text-lg font-bold">@</span>
-								</div>
-								<div className="flex-1 min-w-0">
-									<CardTitle className="text-base font-semibold truncate">
-										{displayEmail}
-									</CardTitle>
-									<CardDescription>
-										{locale.card_description}
-									</CardDescription>
-								</div>
-							</div>
-						</CardHeader>
-						<CardFooter>
-							<CopyButton content={displayEmail || ""}>
-								Copy Email
-							</CopyButton>
-							<Form method="DELETE" className="ml-auto">
-								<Button
-									variant="destructive"
-									size="sm"
-									type="submit"
-									disabled={navigation.formMethod === "DELETE"}
-								>
-									<Trash2 className="h-4 w-4" />
-								</Button>
-							</Form>
-						</CardFooter>
-					</Card>
-				) : (
-					<Card>
-						<CardContent className="pt-6">
-							<AuthForm
-								turnstileSiteKey={turnstileSiteKey}
-								lang={lang}
-								locale={locale}
-								domain={domain}
-								navigation={navigation}
-								setToken={setToken}
-								token={token}
-								defaultLocalPart={actionData?.localPart}
-								emailError={
-									actionData?.error === "email_taken"
-										? locale.custom_email.error_taken
-										: actionData?.error === "invalid_local"
-											? locale.custom_email.error_invalid
-											: undefined
-								}
-							/>
-						</CardContent>
-					</Card>
-				)}
-			</HeroSection>
-
 			{email ? (
-				<section className="py-12 sm:py-16">
+				<section className="py-8 sm:py-12">
 					<div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-						<EmailList initialEmails={emails} locale={locale} />
+						<div className="grid gap-8 lg:grid-cols-[1fr_400px]">
+							<EmailList initialEmails={emails} locale={locale} />
+							<div className="lg:sticky lg:top-24 lg:self-start">
+								<Card className="card-shadow">
+									<CardHeader>
+										<div className="flex items-center gap-3">
+											<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary">
+												<span className="text-lg font-bold">@</span>
+											</div>
+											<div className="flex-1 min-w-0">
+												<CardTitle className="text-base font-semibold truncate">
+													{displayEmail}
+												</CardTitle>
+												<CardDescription>
+													{locale.card_description}
+												</CardDescription>
+											</div>
+										</div>
+									</CardHeader>
+									<CardFooter>
+										<CopyButton content={displayEmail || ""}>
+											Copy Email
+										</CopyButton>
+										<Form method="DELETE" className="ml-auto">
+											<Button
+												variant="destructive"
+												size="sm"
+												type="submit"
+												disabled={navigation.formMethod === "DELETE"}
+											>
+												<Trash2 className="h-4 w-4" />
+											</Button>
+										</Form>
+									</CardFooter>
+								</Card>
+							</div>
+						</div>
 					</div>
 				</section>
 			) : (
-				<FeaturesSection locale={locale} />
+				<>
+					<HeroSection>
+						<Card>
+							<CardContent className="pt-6">
+								<AuthForm
+									turnstileSiteKey={turnstileSiteKey}
+									lang={lang}
+									locale={locale}
+									domain={domain}
+									navigation={navigation}
+									setToken={setToken}
+									token={token}
+									defaultLocalPart={actionData?.localPart}
+									emailError={
+										actionData?.error === "email_taken"
+											? locale.custom_email.error_taken
+											: actionData?.error === "invalid_local"
+												? locale.custom_email.error_invalid
+												: undefined
+									}
+								/>
+							</CardContent>
+						</Card>
+					</HeroSection>
+					<FeaturesSection locale={locale} />
+				</>
 			)}
 
 			<HowItWorks />
