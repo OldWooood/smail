@@ -59,7 +59,7 @@ export default function EmailDetail() {
 
 				<div className="glass overflow-hidden rounded-2xl">
 					<div className="space-y-4 border-b border-glass-border px-5 py-4">
-						<div className="flex items-start gap-3">
+						<div className="flex items-center gap-3">
 							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
 								<Mail className="h-5 w-5" />
 							</div>
