@@ -106,10 +106,10 @@ export default function HomeLayout() {
 	};
 
 	return (
-		<div className="relative isolate min-h-screen flex flex-col overflow-hidden bg-background">
+		<div className="relative isolate flex min-h-dvh flex-col overflow-hidden bg-background">
 			<div aria-hidden className="pointer-events-none fixed inset-0 z-0 app-gradient" />
 			
-			<header className="sticky top-0 z-50 w-full glass">
+			<header className="sticky top-0 z-50 w-full glass header-glass">
 				<div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
 					<Link to="/" className="group flex items-center gap-3">
 						<div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/25 transition-transform duration-300 group-hover:scale-105">

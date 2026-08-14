@@ -7,25 +7,9 @@ export default {
 	theme: {
 		extend: {
 			fontFamily: {
-				display: [
-					'"Inter"',
-					'"SF Pro Display"',
-					'"Helvetica Neue"',
-					"Helvetica",
-					"sans-serif",
-				],
-				sans: [
-					'"Inter"',
-					'"SF Pro Text"',
-					'"Helvetica Neue"',
-					"Helvetica",
-					"sans-serif",
-				],
-				mono: [
-					'"JetBrains Mono"',
-					'"Fira Code"',
-					"monospace",
-				],
+				display: ['"Geist Variable"', '"Geist"', '"SF Pro Display"', "system-ui", "sans-serif"],
+				sans: ['"Geist Variable"', '"Geist"', '"SF Pro Text"', "system-ui", "sans-serif"],
+				mono: ['"JetBrains Mono Variable"', '"JetBrains Mono"', "monospace"],
 			},
 			borderRadius: {
 				lg: "var(--radius)",

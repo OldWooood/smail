@@ -6,8 +6,8 @@
 <p>
 <br />
 <p align="center">
-  <a href="https://smail.pw" target="_blank" rel="noopener">
-    <img width="180" src="https://cdn.bytepacker.com/c34b4517-83aa-428a-978b-fa30b9aaec3b/smail_light.webp" alt="SMail logo">
+  <a href="https://email.deatrg.top/" target="_blank" rel="noopener">
+    <img width="120" src="./public/favicon.png" alt="TempEmail logo">
   </a>
 </p>
 <br/>
@@ -21,7 +21,7 @@
 - 💡 一个 worker 即可快速上手
 
 ## 快速开始
-- 点击 [TempEmail](https://smail.pw) 快速开始
+- 点击 [TempEmail](https://email.deatrg.top/) 快速开始
 - 根据以下文档自行搭建服务
 
 ## 自建前置条件

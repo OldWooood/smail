@@ -1,6 +1,7 @@
 {
-	"name": "",
-	"short_name": "",
+	"name": "TempEmail",
+	"short_name": "TempEmail",
+	"description": "A fast, private, and open-source temporary email service.",
 	"icons": [
 		{
 			"src": "/android-chrome-192x192.png",
@@ -13,7 +14,7 @@
 			"type": "image/png"
 		}
 	],
-	"theme_color": "#ffffff",
+	"theme_color": "#7c3aed",
 	"background_color": "#ffffff",
 	"display": "standalone"
 }

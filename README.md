@@ -6,8 +6,8 @@
 <p>
 <br />
 <p align="center">
-  <a href="https://smail.pw" target="_blank" rel="noopener">
-    <img width="180" src="https://cdn.bytepacker.com/c34b4517-83aa-428a-978b-fa30b9aaec3b/smail_light.webp" alt="SMail logo">
+  <a href="https://email.deatrg.top/" target="_blank" rel="noopener">
+    <img width="120" src="./public/favicon.png" alt="TempEmail logo">
   </a>
 </p>
 <br/>
@@ -21,7 +21,7 @@
 - 💡One worker to get started quickly
 
 ## Quick Start
-- Click [TempEmail](https://smail.pw) to start
+- Click [TempEmail](https://email.deatrg.top/) to start
 - Follow the instructions below to build your service
 
 ## Prerequisites

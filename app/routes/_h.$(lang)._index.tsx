@@ -24,17 +24,12 @@ import { EmailList } from "~/components/email-list";
 import { Button } from "~/components/ui/button";
 import {
 	Card,
-	CardContent,
 	CardDescription,
 	CardFooter,
 	CardHeader,
 	CardTitle,
 } from "~/components/ui/card";
 import { HeroSection } from "~/components/marketing/hero-section";
-import { FeaturesSection } from "~/components/marketing/features-section";
-import { HowItWorks } from "~/components/marketing/how-it-works";
-import { OssSection } from "~/components/marketing/oss-section";
-import { Footer } from "~/components/marketing/footer";
 import { formatEmailList } from "~/lib/email";
 import { getLocaleData } from "~/locales/locale";
 
@@ -129,12 +124,15 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 		emails = formatEmailList(emailData, lang);
 	}
 
+	const sampleAddress = `${createRandomLocalPart()}@${domain}`;
+
 	return {
 		lang,
 		locale,
 		domain,
 		email,
 		emails,
+		sampleAddress,
 		turnstileSiteKey: context.cloudflare.env.TURNSTILE_SITE_KEY,
 	};
 }
@@ -204,7 +202,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 export default function Index() {
-	const { lang, locale, turnstileSiteKey, email, emails, domain } =
+	const { lang, locale, turnstileSiteKey, email, emails, domain, sampleAddress } =
 		useLoaderData<typeof loader>();
 	const actionData = useActionData<ActionData>();
 	const navigation = useNavigation();
@@ -258,36 +256,29 @@ export default function Index() {
 				</section>
 			) : (
 				<>
-					<HeroSection>
-						<Card>
-							<CardContent className="pt-6">
-								<AuthForm
-									turnstileSiteKey={turnstileSiteKey}
-									lang={lang}
-									locale={locale}
-									domain={domain}
-									navigation={navigation}
-									setToken={setToken}
-									token={token}
-									defaultLocalPart={actionData?.localPart}
-									emailError={
-										actionData?.error === "email_taken"
-											? locale.custom_email.error_taken
-											: actionData?.error === "invalid_local"
-												? locale.custom_email.error_invalid
-												: undefined
-									}
-								/>
-							</CardContent>
-						</Card>
+					<HeroSection sampleAddress={sampleAddress}>
+						<div className="glass rounded-2xl p-6">
+							<AuthForm
+								turnstileSiteKey={turnstileSiteKey}
+								lang={lang}
+								locale={locale}
+								domain={domain}
+								navigation={navigation}
+								setToken={setToken}
+								token={token}
+								defaultLocalPart={actionData?.localPart}
+								emailError={
+									actionData?.error === "email_taken"
+										? locale.custom_email.error_taken
+										: actionData?.error === "invalid_local"
+											? locale.custom_email.error_invalid
+											: undefined
+								}
+							/>
+						</div>
 					</HeroSection>
-					<FeaturesSection locale={locale} />
 				</>
 			)}
-
-			<HowItWorks />
-			<OssSection />
-			<Footer />
 		</>
 	);
 }
