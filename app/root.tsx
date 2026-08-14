@@ -10,10 +10,10 @@ import {
 import "~/tailwind.css";
 
 export const links: LinksFunction = () => [
-	{ rel: "icon", type: "image/svg+xml", href: "/favicon.svg?v=5" },
-	{ rel: "icon", href: "/favicon.ico?v=5" },
-	{ rel: "apple-touch-icon", href: "/apple-touch-icon.png?v=5" },
-	{ rel: "manifest", href: "/site.webmanifest?v=5" },
+	{ rel: "icon", href: "/favicon.png?v=9" },
+	{ rel: "icon", href: "/favicon.ico?v=9" },
+	{ rel: "apple-touch-icon", href: "/apple-touch-icon.png?v=9" },
+	{ rel: "manifest", href: "/site.webmanifest?v=9" },
 ];
 
 export async function loader({ params }: LoaderFunctionArgs) {

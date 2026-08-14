@@ -22,13 +22,6 @@ import { AuthForm } from "~/components/auth-form";
 import { CopyButton } from "~/components/copy-button";
 import { EmailList } from "~/components/email-list";
 import { Button } from "~/components/ui/button";
-import {
-	Card,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-} from "~/components/ui/card";
 import { HeroSection } from "~/components/marketing/hero-section";
 import { formatEmailList } from "~/lib/email";
 import { getLocaleData } from "~/locales/locale";
@@ -217,40 +210,38 @@ export default function Index() {
 					<div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
 						<div className="grid gap-8 lg:grid-cols-[1fr_400px]">
 							<EmailList initialEmails={emails} locale={locale} />
-							<div className="lg:sticky lg:top-24 lg:self-start">
-								<Card className="card-shadow">
-									<CardHeader>
-										<div className="flex items-center gap-3">
-											<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary">
-												<span className="text-lg font-bold">@</span>
-											</div>
-											<div className="flex-1 min-w-0">
-												<CardTitle className="text-base font-semibold truncate">
-													{displayEmail}
-												</CardTitle>
-												<CardDescription>
-													{locale.card_description}
-												</CardDescription>
-											</div>
-										</div>
-									</CardHeader>
-									<CardFooter>
-										<CopyButton content={displayEmail || ""}>
-											Copy Email
-										</CopyButton>
-										<Form method="DELETE" className="ml-auto">
-											<Button
-												variant="destructive"
-												size="sm"
-												type="submit"
-												disabled={navigation.formMethod === "DELETE"}
-											>
-												<Trash2 className="h-4 w-4" />
-											</Button>
-										</Form>
-									</CardFooter>
-								</Card>
+						<div className="lg:sticky lg:top-24 lg:self-start">
+							<div className="glass space-y-5 rounded-2xl p-5">
+								<div className="flex items-center gap-3">
+									<div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
+										<span className="text-lg font-bold">@</span>
+									</div>
+									<div className="flex-1 min-w-0">
+										<p className="truncate font-mono text-base font-semibold text-foreground">
+											{displayEmail}
+										</p>
+										<p className="mt-0.5 text-xs text-muted-foreground">
+											{locale.card_description}
+										</p>
+									</div>
+								</div>
+								<div className="flex items-center gap-2">
+									<CopyButton content={displayEmail || ""}>
+										Copy Email
+									</CopyButton>
+									<Form method="DELETE" className="ml-auto">
+										<Button
+											variant="destructive"
+											size="sm"
+											type="submit"
+											disabled={navigation.formMethod === "DELETE"}
+										>
+											<Trash2 className="h-4 w-4" />
+										</Button>
+									</Form>
+								</div>
 							</div>
+						</div>
 						</div>
 					</div>
 				</section>

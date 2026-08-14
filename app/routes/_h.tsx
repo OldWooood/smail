@@ -1,7 +1,7 @@
 import { Link, Outlet, redirect, useLocation, useParams } from "@remix-run/react";
 import { match } from "@formatjs/intl-localematcher";
 import Negotiator from "negotiator";
-import { Mail, Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { GitHubIcon } from "~/icons/github";
 import { cn } from "~/lib/utils";
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
@@ -112,9 +112,11 @@ export default function HomeLayout() {
 			<header className="sticky top-0 z-50 w-full glass header-glass">
 				<div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
 					<Link to="/" className="group flex items-center gap-3">
-						<div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/25 transition-transform duration-300 group-hover:scale-105">
-							<Mail className="h-5 w-5" />
-						</div>
+						<img
+							src="/favicon.png?v=9"
+							alt="TempEmail logo"
+							className="h-10 w-10 transition-transform duration-300 group-hover:scale-105"
+						/>
 						<div className="flex flex-col">
 							<span className="text-lg font-bold tracking-tight text-foreground">
 								TempEmail

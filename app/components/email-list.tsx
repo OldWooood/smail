@@ -17,7 +17,7 @@ interface EmailListProps {
 	locale: Locale;
 }
 
-const REFRESH_INTERVAL = 5000;
+const REFRESH_INTERVAL = 10000;
 
 function emailsChanged(a: Email[], b: Email[]) {
 	if (a.length !== b.length) return true;
@@ -112,14 +112,14 @@ export function EmailList({ initialEmails, locale }: EmailListProps) {
 		<div className="flex flex-col w-full min-h-0 gap-4">
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-3">
-					<div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+					<div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
 						<Mail className="h-5 w-5" />
 					</div>
 					<div className="flex flex-col">
 						<span className="text-sm font-semibold text-foreground">
 							{locale.email_list}
 						</span>
-						<span className="text-xs text-muted-foreground">
+						<span className="font-mono text-xs text-muted-foreground">
 							{emails.length} {emails.length === 1 ? "email" : "emails"}
 						</span>
 					</div>
@@ -147,17 +147,17 @@ export function EmailList({ initialEmails, locale }: EmailListProps) {
 				</div>
 			</div>
 
-			<div className="flex-1 min-h-0 rounded-xl border border-border/50 bg-card card-shadow overflow-hidden">
+			<div className="glass flex-1 min-h-0 overflow-hidden rounded-2xl">
 				<ScrollArea className="h-full max-h-[500px] custom-scrollbar">
 					{emails.length === 0 ? (
-						<div className="flex flex-col items-center justify-center py-16 px-4">
-							<div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted mb-4">
-								<Inbox className="h-8 w-8 text-muted-foreground/50" />
+						<div className="flex flex-col items-center justify-center px-4 py-16">
+							<div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20">
+								<Inbox className="h-8 w-8" />
 							</div>
 							<p className="text-sm font-medium text-muted-foreground">
 								{locale.email_empty}
 							</p>
-							<p className="text-xs text-muted-foreground/60 mt-1">
+							<p className="mt-1 text-xs text-muted-foreground/60">
 								Waiting for incoming emails...
 							</p>
 						</div>
@@ -172,8 +172,8 @@ export function EmailList({ initialEmails, locale }: EmailListProps) {
 									className={({ isActive }) =>
 										cn(
 											"flex items-center gap-4 px-4 py-4 transition-all duration-200",
-											"hover:bg-muted/50",
-											isActive && "bg-primary/5 border-l-4 border-l-primary pl-3"
+											"hover:bg-muted/40",
+											isActive && "bg-primary/[0.07]"
 										)
 									}
 								>
@@ -185,7 +185,7 @@ export function EmailList({ initialEmails, locale }: EmailListProps) {
 											{email.subject || "(No Subject)"}
 										</p>
 									</div>
-									<span className="shrink-0 text-xs text-muted-foreground whitespace-nowrap">
+									<span className="shrink-0 whitespace-nowrap font-mono text-xs text-muted-foreground">
 										{email.createdAt}
 									</span>
 								</NavLink>
