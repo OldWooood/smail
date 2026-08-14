@@ -99,7 +99,12 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 	const email = session.data.email;
 
 	// 只加载初始邮件列表
-	let emails: { id: string; subject: string | null; createdAt: string }[] = [];
+	let emails: {
+		id: string;
+		subject: string | null;
+		createdAt: string;
+		senderLabel: string;
+	}[] = [];
 	if (email) {
 		const db = d1Wrapper(context.cloudflare.env.DB);
 		const emailData = await db.query.emails.findMany({
@@ -107,6 +112,8 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 				id: true,
 				subject: true,
 				createdAt: true,
+				messageFrom: true,
+				from: true,
 			},
 			where: (emails, { eq }) => eq(emails.messageTo, email),
 			limit: EMAIL_LIST_LIMIT,
@@ -114,7 +121,11 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 				return [operators.desc(fields.createdAt)];
 			},
 		});
-		emails = formatEmailList(emailData, lang);
+		emails = formatEmailList(emailData, lang).map((email) => ({
+			...email,
+			senderLabel:
+				email.from?.name || email.from?.address || email.messageFrom || "",
+		}));
 	}
 
 	const sampleAddress = `${createRandomLocalPart()}@${domain}`;

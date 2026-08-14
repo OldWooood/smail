@@ -22,6 +22,8 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 			id: true,
 			subject: true,
 			createdAt: true,
+			messageFrom: true,
+			from: true,
 		},
 		where: (emails, { eq }) => eq(emails.messageTo, email),
 		limit: EMAIL_LIST_LIMIT,
@@ -30,6 +32,10 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 		},
 	});
 
-	const formattedEmails = formatEmailList(emails, lang);
+	const formattedEmails = formatEmailList(emails, lang).map((email) => ({
+		...email,
+		senderLabel:
+			email.from?.name || email.from?.address || email.messageFrom || "",
+	}));
 	return json({ emails: formattedEmails });
 }

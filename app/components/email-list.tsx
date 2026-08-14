@@ -10,6 +10,7 @@ interface Email {
 	id: string;
 	subject: string | null;
 	createdAt: string;
+	senderLabel?: string;
 }
 
 interface EmailListProps {
@@ -171,23 +172,34 @@ export function EmailList({ initialEmails, locale }: EmailListProps) {
 									key={email.id}
 									className={({ isActive }) =>
 										cn(
-											"flex items-center gap-4 px-4 py-4 transition-all duration-200",
+											"flex items-center gap-4 px-5 py-4 transition-all duration-200",
 											"hover:bg-muted/40",
 											isActive && "bg-primary/[0.07]"
 										)
 									}
 								>
-									<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-										<Mail className="h-4 w-4" />
-									</div>
-									<div className="flex-1 min-w-0">
-										<p className="text-sm font-medium text-foreground truncate">
-											{email.subject || "(No Subject)"}
-										</p>
-									</div>
-									<span className="shrink-0 whitespace-nowrap font-mono text-xs text-muted-foreground">
-										{email.createdAt}
-									</span>
+									{({ isActive }) => (
+										<>
+											<div className="min-w-0 flex-1">
+												<p
+													className={cn(
+														"truncate text-sm text-foreground",
+														isActive ? "font-semibold" : "font-medium"
+													)}
+												>
+													{email.subject || "(No Subject)"}
+												</p>
+												{email.senderLabel && (
+													<p className="mt-0.5 truncate text-xs text-muted-foreground">
+														{email.senderLabel}
+													</p>
+												)}
+											</div>
+											<span className="ml-4 shrink-0 whitespace-nowrap font-mono text-xs text-muted-foreground">
+												{email.createdAt}
+											</span>
+										</>
+									)}
 								</NavLink>
 							))}
 						</div>
