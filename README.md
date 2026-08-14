@@ -1,47 +1,110 @@
 <p align="center">
-  <span>
-   English | 
-   <a href="https://github.com/akazwz/smail/blob/main/README.zh_CN.md">简体中文</a>
-  </span>
-<p>
-<br />
-<p align="center">
   <a href="https://email.deatrg.top/" target="_blank" rel="noopener">
     <img width="120" src="./public/favicon.png" alt="TempEmail logo">
   </a>
 </p>
-<br/>
-<div align="center">
-  <p>Use cloudflare worker to quickly build a temporary email service<p>
-</div>
+<p align="center">
+  English | <a href="./README.zh_CN.md">简体中文</a>
+</p>
 
-# TempEmail 📨
-- 📁Use Cloudflare Email Workers to receive emails
-- 🖼Provide a modern web application
-- 💡One worker to get started quickly
+# TempEmail
+
+A fast, private, and open-source temporary email service. Get a disposable
+address in one click, no sign-up, no tracking. Deploy your own instance on
+Cloudflare Workers in minutes.
+
+**Live demo: [email.deatrg.top](https://email.deatrg.top/)**
+
+## Features
+
+- One-click disposable inbox, no account required
+- Custom username or random generated address
+- Mailbox expires after 24 hours
+- Live inbox that auto-refreshes every 10 seconds
+- Email detail view with sender and time
+- 6 languages: English, 简体中文, Español, Français, 日本語, 한국어
+- Light and dark themes
+- Cloudflare Turnstile protection
+- Optional password protection
+- Fully self-hostable, no vendor lock-in
+
+## Tech Stack
+
+- [Remix](https://remix.run/) + Vite, Tailwind CSS
+- [Cloudflare Workers](https://workers.cloudflare.com/) + Email Workers
+- [D1](https://developers.cloudflare.com/d1/) (SQLite) + [KV](https://developers.cloudflare.com/kv/) via [drizzle-orm](https://orm.drizzle.team/)
+- [Cloudflare Turnstile](https://www.cloudflare.com/products/turnstile/)
 
 ## Quick Start
-- Click [TempEmail](https://email.deatrg.top/) to start
-- Follow the instructions below to build your service
 
-## Prerequisites
-- cloudflare account
-- Domain name in cloudflare and enable email routing function (enable in domain email settings)
-- Create KV and D1 databases in Workers and Pages
+1. Open [email.deatrg.top](https://email.deatrg.top/)
+2. Type a custom username, or leave it blank for a random address
+3. Click **Get Email** and start using it right away
+4. The inbox refreshes automatically; the mailbox expires after 24 hours
 
-## Self-built
-- star this repository (not necessary, lmao, but thank you for the star)
-- clone the repository, modify the KV id and D1 database id in wrangler.toml to your own
-- Migrate the database, run pnpm wrangler d1 migrations apply smail --remote
-- Deploy the worker, run pnpm run deploy
-- Add environment variables, enter worker settings->variables and secrets: set COOKIE_SECRET: key for encrypting cookies, DOMAIN: your domain name
-- Enter domain management->email->routing rules->Catch-all address. Here choose to send to the worker, and then select the created worker
+## Self-host
 
-finished: visit your worker, you can customize the domain name for the worker as needed. If the project is updated later, you can synchronize it in your forked repository, and it will be automatically deployed
+### Prerequisites
 
-### Other features
-- Password protection: set PASSWORD in cf worker environment variables, access requires password
+- A Cloudflare account
+- A domain on Cloudflare with [Email Routing](https://developers.cloudflare.com/email-routing/) enabled
+- KV and D1 databases created in Workers / Pages
+
+### Deploy
+
+```bash
+git clone https://github.com/OldWooood/smail.git
+cd smail
+pnpm install
+```
+
+1. Edit `wrangler.toml`: replace the KV namespace id and D1 database id with
+   your own, and set `DOMAIN` to your domain
+2. Migrate the database:
+
+```bash
+pnpm wrangler d1 migrations apply smail --remote
+```
+
+3. Deploy:
+
+```bash
+pnpm run deploy
+```
+
+4. Set the required environment variables (Worker settings, Variables and
+   Secrets):
+
+| Variable            | Required | Description                                  |
+| ------------------- | -------- | -------------------------------------------- |
+| `DOMAIN`            | yes      | Your mail domain, e.g. `temp.example.com`    |
+| `COOKIE_SECRET`     | yes      | Secret used to encrypt session cookies       |
+| `TURNSTILE_SITE_KEY`| no       | Cloudflare Turnstile site key                |
+| `PASSWORD`          | no       | If set, access requires this password        |
+
+5. Configure email routing: Domain dashboard, Email, Routing Rules, Catch-all
+   address. Send the catch-all to the deployed Worker.
+
+### Development
+
+```bash
+pnpm install
+pnpm dev
+```
+
+### Scripts
+
+| Script           | Description                          |
+| ---------------- | ------------------------------------ |
+| `pnpm dev`       | Start the Remix dev server           |
+| `pnpm build`     | Build client, server and worker      |
+| `pnpm deploy`    | Build and deploy to Cloudflare       |
+| `pnpm lint`      | Run ESLint                           |
+| `pnpm typecheck` | Run TypeScript checks                |
+| `pnpm format`    | Format with Biome                    |
 
 ## Credits
-- This project is a fork of [Smail](https://github.com/akazwz/smail). Huge thanks to the original author.
+
+- This project is a fork of [Smail](https://github.com/akazwz/smail). Huge
+  thanks to the original author.
 - [Email.ML](https://email.ml)
