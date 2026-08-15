@@ -1,5 +1,4 @@
 {
-	"title": "temp email",
 	"description": "A fast and private temporary email service",
 	"button": "Get Email",
 	"card_description": "This is your temporary email, the email list refreshes every 10 seconds",
@@ -13,27 +12,47 @@
 		"error_taken": "This address is already taken. Please choose another.",
 		"error_invalid": "Only 3-32 letters, numbers, dots, underscores, or dashes."
 	},
-	"features": [
-		{
-			"title": "Open-source",
-			"description": "Our code is open-source, you can view it on GitHub."
-		},
-		{
-			"title": "Free",
-			"description": "Our service is always free. No payment, no subscription."
-		},
-		{
-			"title": "Simple",
-			"description": "Just one click, you can get a temporary email."
-		},
-		{
-			"title": "Self-hosted",
-			"description": "You can deploy a TempEmail service by yourself, just a few minutes."
-		}
-	],
 	"auth": {
 		"title": "The administrator has enabled password protection, please enter the password:",
 		"msg": "Password error",
 		"submit": "Submit"
+	},
+	"hero": {
+		"badge": "Open Source",
+		"title_a": "Temporary email,",
+		"title_b": "without the sign-up.",
+		"subtitle": "A fast, private, and open-source temporary email service. Just disposable addresses that work."
+	},
+	"form": {
+		"get_started": "Get Started",
+		"create_address": "Create a temporary email address",
+		"creating": "Creating..."
+	},
+	"list": {
+		"refresh": "Refresh",
+		"refresh_failed": "Failed to refresh",
+		"no_subject": "(No Subject)",
+		"waiting": "Waiting for incoming emails...",
+		"count_one": "email",
+		"count_other": "emails",
+		"notification_title": "New Email",
+		"notification_body": "You have received a new email!"
+	},
+	"detail": {
+		"back": "Back",
+		"view_details": "View email details"
+	},
+	"mailbox": {
+		"copy": "Copy Email",
+		"delete": "Delete"
+	},
+	"nav": {
+		"tagline": "Temporary Inbox",
+		"light_mode": "Switch to light mode",
+		"dark_mode": "Switch to dark mode"
+	},
+	"chip": {
+		"welcome": "Welcome to TempEmail",
+		"just_now": "just now"
 	}
 }

@@ -1,5 +1,4 @@
 {
-	"title": "Courriel temporaire",
 	"description": "Un service de courriel temporaire rapide et prive",
 	"button": "Obtenir un courriel",
 	"card_description": "Voici votre courriel temporaire, la liste se rafraichit toutes les 10 secondes",
@@ -13,27 +12,47 @@
 		"error_taken": "Cette adresse est deja utilisee. Choisissez-en une autre.",
 		"error_invalid": "Seulement 3-32 lettres, chiffres, points, tirets bas ou tirets."
 	},
-	"features": [
-		{
-			"title": "Open source",
-			"description": "Notre code est open source, vous pouvez le voir sur GitHub."
-		},
-		{
-			"title": "Gratuit",
-			"description": "Notre service est toujours gratuit. Aucun paiement, aucun abonnement."
-		},
-		{
-			"title": "Simple",
-			"description": "Un clic suffit pour obtenir un courriel temporaire."
-		},
-		{
-			"title": "Auto heberge",
-			"description": "Vous pouvez deployer votre propre TempEmail en quelques minutes."
-		}
-	],
 	"auth": {
 		"title": "L administrateur a active la protection par mot de passe, veuillez saisir le mot de passe :",
 		"msg": "Mot de passe incorrect",
 		"submit": "Envoyer"
+	},
+	"hero": {
+		"badge": "Open source",
+		"title_a": "Email jetable,",
+		"title_b": "sans inscription.",
+		"subtitle": "Un service d'emails jetables rapide, prive et open source. Des adresses qui fonctionnent."
+	},
+	"form": {
+		"get_started": "Commencer",
+		"create_address": "Creez une adresse email jetable",
+		"creating": "Creation..."
+	},
+	"list": {
+		"refresh": "Actualiser",
+		"refresh_failed": "Echec de l'actualisation",
+		"no_subject": "(Sans objet)",
+		"waiting": "En attente de nouveaux emails...",
+		"count_one": "email",
+		"count_other": "emails",
+		"notification_title": "Nouvel email",
+		"notification_body": "Vous avez recu un nouvel email !"
+	},
+	"detail": {
+		"back": "Retour",
+		"view_details": "Voir les details de l'email"
+	},
+	"mailbox": {
+		"copy": "Copier l'email",
+		"delete": "Supprimer"
+	},
+	"nav": {
+		"tagline": "Boite de reception jetable",
+		"light_mode": "Passer en mode clair",
+		"dark_mode": "Passer en mode sombre"
+	},
+	"chip": {
+		"welcome": "Bienvenue sur TempEmail",
+		"just_now": "a l'instant"
 	}
 }

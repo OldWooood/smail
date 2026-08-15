@@ -217,7 +217,7 @@ export default function Index() {
 	return (
 		<>
 			{email ? (
-				<section className="py-8 sm:py-12">
+				<section className="animate-reveal py-8 sm:py-12">
 					<div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
 						<div className="grid gap-8 lg:grid-cols-[1fr_400px]">
 							<EmailList initialEmails={emails} locale={locale} />
@@ -238,13 +238,14 @@ export default function Index() {
 								</div>
 								<div className="flex items-center gap-2">
 									<CopyButton content={displayEmail || ""}>
-										Copy Email
+										{locale.mailbox.copy}
 									</CopyButton>
-									<Form method="DELETE" className="ml-auto">
+									<Form method="DELETE" viewTransition className="ml-auto">
 										<Button
 											variant="destructive"
 											size="sm"
 											type="submit"
+											aria-label={locale.mailbox.delete}
 											disabled={navigation.formMethod === "DELETE"}
 										>
 											<Trash2 className="h-4 w-4" />
@@ -258,7 +259,7 @@ export default function Index() {
 				</section>
 			) : (
 				<>
-					<HeroSection sampleAddress={sampleAddress}>
+					<HeroSection sampleAddress={sampleAddress} locale={locale}>
 						<div className="glass rounded-2xl p-6">
 							<AuthForm
 								turnstileSiteKey={turnstileSiteKey}

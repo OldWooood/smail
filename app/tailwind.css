@@ -270,6 +270,22 @@ html {
 		to { transform: translateX(-50%); }
 	}
 
+	::view-transition-old(root) {
+		animation: vtOut 0.18s ease-out forwards;
+	}
+
+	::view-transition-new(root) {
+		animation: vtIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+	}
+
+	@keyframes vtOut {
+		to { opacity: 0; transform: translateY(-10px); }
+	}
+
+	@keyframes vtIn {
+		from { opacity: 0; transform: translateY(14px); }
+	}
+
 	.light-pool {
 		will-change: transform;
 	}
@@ -300,6 +316,11 @@ html {
 		.animate-marquee,
 		.light-pool-a,
 		.light-pool-b {
+			animation: none;
+		}
+
+		::view-transition-old(root),
+		::view-transition-new(root) {
 			animation: none;
 		}
 	}

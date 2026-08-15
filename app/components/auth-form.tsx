@@ -61,16 +61,16 @@ export function AuthForm({
 					</div>
 					<div>
 						<h3 className="text-lg font-semibold text-foreground">
-							Get Started
+							{locale.form.get_started}
 						</h3>
 						<p className="text-sm text-muted-foreground">
-							Create a temporary email address
+							{locale.form.create_address}
 						</p>
 					</div>
 				</div>
 			</div>
 
-			<Form method="POST" className="space-y-5">
+			<Form method="POST" viewTransition className="space-y-5">
 				<div className="space-y-3">
 					<Label htmlFor="localPart" className="text-sm font-medium">
 						{locale.custom_email.label}
@@ -125,7 +125,7 @@ export function AuthForm({
 					{navigation.state === "submitting" ? (
 						<>
 							<Loader2 className="h-4 w-4 animate-spin" />
-							<span>Creating...</span>
+							<span>{locale.form.creating}</span>
 						</>
 					) : (
 						<>

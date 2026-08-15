@@ -42,7 +42,13 @@ export default function EmailDetail() {
 		<div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
 			<div className="space-y-6">
 				<div className="flex items-center gap-4">
-					<Button asChild variant="outline" size="icon" className="shrink-0">
+					<Button
+					asChild
+					variant="outline"
+					size="icon"
+					aria-label={locale.detail.back}
+					className="shrink-0"
+				>
 						<Link prefetch="viewport" viewTransition to="/">
 							<ArrowLeft className="h-4 w-4" />
 						</Link>
@@ -52,7 +58,7 @@ export default function EmailDetail() {
 							{locale.email_detail}
 						</h1>
 						<p className="text-sm text-muted-foreground">
-							View email details
+							{locale.detail.view_details}
 						</p>
 					</div>
 				</div>
@@ -65,7 +71,7 @@ export default function EmailDetail() {
 							</div>
 							<div className="flex-1 min-w-0">
 								<h2 className="text-base font-semibold leading-tight text-foreground">
-									{email.subject || "(No Subject)"}
+									{email.subject || locale.list.no_subject}
 								</h2>
 							</div>
 						</div>

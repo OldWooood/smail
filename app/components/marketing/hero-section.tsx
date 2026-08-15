@@ -1,11 +1,13 @@
+import type { Locale } from "~/locales/locale";
 import { ArrivalChip } from "./arrival-chip";
 
 interface HeroSectionProps {
 	children: React.ReactNode;
 	sampleAddress: string;
+	locale: Locale;
 }
 
-export function HeroSection({ children, sampleAddress }: HeroSectionProps) {
+export function HeroSection({ children, sampleAddress, locale }: HeroSectionProps) {
 	return (
 		<section className="relative flex min-h-[calc(100dvh-4rem)] items-center overflow-hidden pt-20 sm:pt-24 pb-20">
 			<div
@@ -25,16 +27,15 @@ export function HeroSection({ children, sampleAddress }: HeroSectionProps) {
 					<div className="animate-reveal space-y-6">
 						<div className="glass inline-flex h-8 items-center gap-2 rounded-full px-4 text-xs font-medium text-primary">
 							<span className="h-1.5 w-1.5 rounded-full bg-primary" />
-							Open Source
+							{locale.hero.badge}
 						</div>
 						<h1 className="text-4xl font-extrabold leading-[1.05] tracking-[-0.04em] text-foreground sm:text-5xl lg:text-6xl font-display">
-							Temporary email,
+							{locale.hero.title_a}
 							<br className="hidden sm:block" />
-							<span className="text-primary">without the sign-up.</span>
+							<span className="text-primary">{locale.hero.title_b}</span>
 						</h1>
 						<p className="max-w-lg text-base leading-relaxed text-muted-foreground sm:text-lg">
-							A fast, private, and open-source temporary email service.
-							Just disposable addresses that work.
+							{locale.hero.subtitle}
 						</p>
 					</div>
 
@@ -47,7 +48,7 @@ export function HeroSection({ children, sampleAddress }: HeroSectionProps) {
 							<div className="light-pool light-pool-b absolute bottom-0 left-10 h-56 w-56 rounded-full bg-chart-3/15 blur-3xl" />
 						</div>
 						<div className="animate-scale-in relative">{children}</div>
-						<ArrivalChip address={sampleAddress} />
+						<ArrivalChip address={sampleAddress} locale={locale} />
 					</div>
 				</div>
 			</div>

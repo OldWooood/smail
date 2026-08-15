@@ -1,11 +1,13 @@
 import { MailCheck } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
+import type { Locale } from "~/locales/locale";
 
 interface ArrivalChipProps {
 	address: string;
+	locale: Locale;
 }
 
-export function ArrivalChip({ address }: ArrivalChipProps) {
+export function ArrivalChip({ address, locale }: ArrivalChipProps) {
 	const reduce = useReducedMotion();
 
 	if (reduce) return null;
@@ -29,14 +31,14 @@ export function ArrivalChip({ address }: ArrivalChipProps) {
 				</div>
 				<div className="min-w-0 flex-1">
 					<p className="truncate text-xs font-semibold text-foreground">
-						Welcome to TempEmail
+						{locale.chip.welcome}
 					</p>
 					<p className="truncate font-mono text-[11px] text-muted-foreground">
 						{address}
 					</p>
 				</div>
 				<span className="shrink-0 whitespace-nowrap text-[10px] text-muted-foreground/70">
-					just now
+					{locale.chip.just_now}
 				</span>
 			</div>
 		</motion.div>

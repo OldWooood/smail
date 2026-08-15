@@ -1,4 +1,11 @@
-import { Link, Outlet, redirect, useLocation, useParams } from "@remix-run/react";
+import {
+	Link,
+	Outlet,
+	redirect,
+	useLoaderData,
+	useLocation,
+	useParams,
+} from "@remix-run/react";
 import { match } from "@formatjs/intl-localematcher";
 import Negotiator from "negotiator";
 import { Moon, Sun } from "lucide-react";
@@ -6,6 +13,7 @@ import { GitHubIcon } from "~/icons/github";
 import { cn } from "~/lib/utils";
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { sessionWrapper } from "~/.server/session";
+import { getLocaleData, type Locale } from "~/locales/locale";
 import { useEffect, useState } from "react";
 
 const localeOptions = [
@@ -44,10 +52,11 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 			return redirect(`/${lang}${pathname}`);
 		}
 	}
-	return null;
+	const locale = await getLocaleData(lang || "en");
+	return { locale };
 }
 
-function ThemeToggle() {
+function ThemeToggle({ locale }: { locale: Locale }) {
 	const [theme, setTheme] = useState<"light" | "dark">("dark");
 	const [mounted, setMounted] = useState(false);
 
@@ -81,7 +90,9 @@ function ThemeToggle() {
 		<button
 			onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
 			className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/50 bg-background/50 text-foreground/70 transition-all hover:bg-background hover:text-foreground"
-			aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+			aria-label={
+				theme === "dark" ? locale.nav.light_mode : locale.nav.dark_mode
+			}
 		>
 			{theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
 		</button>
@@ -91,6 +102,7 @@ function ThemeToggle() {
 export default function HomeLayout() {
 	const location = useLocation();
 	const params = useParams();
+	const { locale } = useLoaderData<typeof loader>();
 	const currentLang =
 		params.lang && localeCodes.has(params.lang) ? params.lang : "en";
 
@@ -122,7 +134,7 @@ export default function HomeLayout() {
 								TempEmail
 							</span>
 							<span className="text-[10px] font-medium text-muted-foreground">
-								Temporary Inbox
+								{locale.nav.tagline}
 							</span>
 						</div>
 					</Link>
@@ -152,7 +164,7 @@ export default function HomeLayout() {
 						</nav>
 
 						<div className="flex items-center gap-2">
-							<ThemeToggle />
+							<ThemeToggle locale={locale} />
 							<Link
 								to="https://github.com/OldWooood/smail"
 								target="_blank"

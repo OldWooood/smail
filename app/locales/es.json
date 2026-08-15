@@ -1,5 +1,4 @@
 {
-	"title": "Correo temporal",
 	"description": "Un servicio de correo temporal rapido y privado",
 	"button": "Obtener correo",
 	"card_description": "Este es tu correo temporal; la lista se actualiza cada 10 segundos",
@@ -13,27 +12,47 @@
 		"error_taken": "Esta direccion ya esta ocupada. Elige otra.",
 		"error_invalid": "Solo 3-32 letras, numeros, puntos, guiones bajos o guiones."
 	},
-	"features": [
-		{
-			"title": "Codigo abierto",
-			"description": "Nuestro codigo es abierto, puedes verlo en GitHub."
-		},
-		{
-			"title": "Gratis",
-			"description": "Nuestro servicio siempre es gratuito. Sin pago, sin suscripcion."
-		},
-		{
-			"title": "Simple",
-			"description": "Con un clic, obtienes un correo temporal."
-		},
-		{
-			"title": "Auto hospedado",
-			"description": "Puedes desplegar tu propio TempEmail en pocos minutos."
-		}
-	],
 	"auth": {
 		"title": "El administrador activo la proteccion con contrasena. Ingresa la contrasena:",
 		"msg": "Contrasena incorrecta",
 		"submit": "Enviar"
+	},
+	"hero": {
+		"badge": "Codigo abierto",
+		"title_a": "Correo temporal,",
+		"title_b": "sin registrarse.",
+		"subtitle": "Un servicio de correo temporal rapido, privado y de codigo abierto. Direcciones desechables que funcionan."
+	},
+	"form": {
+		"get_started": "Empezar",
+		"create_address": "Crea una direccion de correo temporal",
+		"creating": "Creando..."
+	},
+	"list": {
+		"refresh": "Actualizar",
+		"refresh_failed": "Error al actualizar",
+		"no_subject": "(Sin asunto)",
+		"waiting": "Esperando correos entrantes...",
+		"count_one": "correo",
+		"count_other": "correos",
+		"notification_title": "Nuevo correo",
+		"notification_body": "Has recibido un nuevo correo!"
+	},
+	"detail": {
+		"back": "Volver",
+		"view_details": "Ver detalles del correo"
+	},
+	"mailbox": {
+		"copy": "Copiar correo",
+		"delete": "Eliminar"
+	},
+	"nav": {
+		"tagline": "Bandeja temporal",
+		"light_mode": "Cambiar a modo claro",
+		"dark_mode": "Cambiar a modo oscuro"
+	},
+	"chip": {
+		"welcome": "Bienvenido a TempEmail",
+		"just_now": "ahora mismo"
 	}
 }

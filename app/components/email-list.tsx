@@ -96,13 +96,13 @@ export function EmailList({ initialEmails, locale }: EmailListProps) {
 	useEffect(() => {
 		if (emails.length > previousEmailsLength.current) {
 			if (Notification.permission === "granted") {
-				new Notification("New Email", {
-					body: "You have received a new email!",
+				new Notification(locale.list.notification_title, {
+					body: locale.list.notification_body,
 				});
 			}
 		}
 		previousEmailsLength.current = emails.length;
-	}, [emails.length]);
+	}, [emails.length, locale.list.notification_title, locale.list.notification_body]);
 
 	useEffect(() => {
 		setEmails(initialEmails);
@@ -121,14 +121,14 @@ export function EmailList({ initialEmails, locale }: EmailListProps) {
 							{locale.email_list}
 						</span>
 						<span className="font-mono text-xs text-muted-foreground">
-							{emails.length} {emails.length === 1 ? "email" : "emails"}
+							{emails.length} {emails.length === 1 ? locale.list.count_one : locale.list.count_other}
 						</span>
 					</div>
 				</div>
 				<div className="flex items-center gap-2">
 					{error && (
 						<span className="text-xs text-destructive hidden sm:inline">
-							Failed to refresh
+							{locale.list.refresh_failed}
 						</span>
 					)}
 					<Button
@@ -143,7 +143,7 @@ export function EmailList({ initialEmails, locale }: EmailListProps) {
 								"animate-spin": isLoading,
 							})}
 						/>
-						<span className="hidden sm:inline">Refresh</span>
+						<span className="hidden sm:inline">{locale.list.refresh}</span>
 					</Button>
 				</div>
 			</div>
@@ -159,7 +159,7 @@ export function EmailList({ initialEmails, locale }: EmailListProps) {
 								{locale.email_empty}
 							</p>
 							<p className="mt-1 text-xs text-muted-foreground/60">
-								Waiting for incoming emails...
+								{locale.list.waiting}
 							</p>
 						</div>
 					) : (
@@ -187,7 +187,7 @@ export function EmailList({ initialEmails, locale }: EmailListProps) {
 														isActive ? "font-semibold" : "font-medium"
 													)}
 												>
-													{email.subject || "(No Subject)"}
+													{email.subject || locale.list.no_subject}
 												</p>
 												{email.senderLabel && (
 													<p className="mt-0.5 truncate text-xs text-muted-foreground">

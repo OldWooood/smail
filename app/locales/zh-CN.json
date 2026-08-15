@@ -1,5 +1,4 @@
 {
-	"title": "temp email",
 	"description": "快速、私密的临时邮箱服务",
 	"button": "获取邮箱",
 	"card_description": "这是你的临时邮箱, 邮件列表每10秒钟刷新",
@@ -13,27 +12,47 @@
 		"error_taken": "该地址已被占用，请更换。",
 		"error_invalid": "仅支持 3-32 位字母、数字、点、下划线或短横线。"
 	},
-	"features": [
-		{
-			"title": "开源",
-			"description": "我们的代码是开源的，您可以在 GitHub 上查看。"
-		},
-		{
-			"title": "免费",
-			"description": "我们的服务永远是免费的。无需付费，无需订阅。"
-		},
-		{
-			"title": "简单",
-			"description": "只需一个点击，您就可以获取一个临时邮箱。"
-		},
-		{
-			"title": "自部署",
-			"description": "您可以自己部署一个 TempEmail 服务，只需要几分钟。"
-		}
-	],
 	"auth": {
 		"title": "管理员开启了密码保护, 请输入密码:",
 		"msg": "密码错误",
 		"submit": "提交"
+	},
+	"hero": {
+		"badge": "开源",
+		"title_a": "临时邮箱,",
+		"title_b": "无需注册。",
+		"subtitle": "快速、私密、开源的临时邮箱服务。只需要一个能用的临时地址。"
+	},
+	"form": {
+		"get_started": "开始使用",
+		"create_address": "创建一个临时邮箱地址",
+		"creating": "创建中..."
+	},
+	"list": {
+		"refresh": "刷新",
+		"refresh_failed": "刷新失败",
+		"no_subject": "(无主题)",
+		"waiting": "等待接收邮件...",
+		"count_one": "封邮件",
+		"count_other": "封邮件",
+		"notification_title": "新邮件",
+		"notification_body": "你收到了一封新邮件!"
+	},
+	"detail": {
+		"back": "返回",
+		"view_details": "查看邮件详情"
+	},
+	"mailbox": {
+		"copy": "复制邮箱",
+		"delete": "删除"
+	},
+	"nav": {
+		"tagline": "临时收件箱",
+		"light_mode": "切换到浅色模式",
+		"dark_mode": "切换到深色模式"
+	},
+	"chip": {
+		"welcome": "欢迎使用 TempEmail",
+		"just_now": "刚刚"
 	}
 }

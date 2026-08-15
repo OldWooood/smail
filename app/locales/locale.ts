@@ -1,5 +1,4 @@
 export interface Locale {
-	title: string;
 	description: string;
 	button: string;
 	card_description: string;
@@ -13,14 +12,48 @@ export interface Locale {
 		error_taken: string;
 		error_invalid: string;
 	};
-	features: {
-		title: string;
-		description: string;
-	}[];
 	auth: {
 		title: string;
 		msg: string;
 		submit: string;
+	};
+	hero: {
+		badge: string;
+		title_a: string;
+		title_b: string;
+		subtitle: string;
+	};
+	form: {
+		get_started: string;
+		create_address: string;
+		creating: string;
+	};
+	list: {
+		refresh: string;
+		refresh_failed: string;
+		no_subject: string;
+		waiting: string;
+		count_one: string;
+		count_other: string;
+		notification_title: string;
+		notification_body: string;
+	};
+	detail: {
+		back: string;
+		view_details: string;
+	};
+	mailbox: {
+		copy: string;
+		delete: string;
+	};
+	nav: {
+		tagline: string;
+		light_mode: string;
+		dark_mode: string;
+	};
+	chip: {
+		welcome: string;
+		just_now: string;
 	};
 }
 

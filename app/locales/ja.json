@@ -1,5 +1,4 @@
 {
-	"title": "一時メール",
 	"description": "高速でプライベートな一時メールサービス",
 	"button": "メールを取得",
 	"card_description": "これはあなたの一時メールです。メール一覧は10秒ごとに更新されます",
@@ -13,27 +12,47 @@
 		"error_taken": "このアドレスは既に使用されています。別のものを選んでください。",
 		"error_invalid": "3〜32文字の英数字、ドット、アンダースコア、ハイフンのみ使用できます。"
 	},
-	"features": [
-		{
-			"title": "オープンソース",
-			"description": "コードは公開されており、GitHubで確認できます。"
-		},
-		{
-			"title": "無料",
-			"description": "常に無料です。支払いも購読も不要です。"
-		},
-		{
-			"title": "シンプル",
-			"description": "ワンクリックで一時メールを取得できます。"
-		},
-		{
-			"title": "セルフホスト",
-			"description": "数分で自分のTempEmailを構築できます。"
-		}
-	],
 	"auth": {
 		"title": "管理者がパスワード保護を有効にしました。パスワードを入力してください：",
 		"msg": "パスワードが違います",
 		"submit": "送信"
+	},
+	"hero": {
+		"badge": "オープンソース",
+		"title_a": "仮想メールアドレス、",
+		"title_b": "登録不要。",
+		"subtitle": "高速・プライベート・オープンソースの一時メールサービス。使い捨てアドレスがすぐに使えます。"
+	},
+	"form": {
+		"get_started": "はじめる",
+		"create_address": "一時メールアドレスを作成",
+		"creating": "作成中..."
+	},
+	"list": {
+		"refresh": "更新",
+		"refresh_failed": "更新に失敗しました",
+		"no_subject": "(件名なし)",
+		"waiting": "メールの受信を待っています...",
+		"count_one": "通のメール",
+		"count_other": "通のメール",
+		"notification_title": "新しいメール",
+		"notification_body": "新しいメールを受信しました!"
+	},
+	"detail": {
+		"back": "戻る",
+		"view_details": "メールの詳細を見る"
+	},
+	"mailbox": {
+		"copy": "メールをコピー",
+		"delete": "削除"
+	},
+	"nav": {
+		"tagline": "一時受信トレイ",
+		"light_mode": "ライトモードに切り替え",
+		"dark_mode": "ダークモードに切り替え"
+	},
+	"chip": {
+		"welcome": "TempEmail へようこそ",
+		"just_now": "たった今"
 	}
 }
