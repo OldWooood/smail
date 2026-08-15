@@ -17,16 +17,19 @@ import { Trash2 } from "lucide-react";
 import { customAlphabet } from "nanoid";
 import { useState } from "react";
 import { d1Wrapper, schema } from "~/.server/db";
+import { listEmails } from "~/.server/emails";
+import {
+	mailboxStateKey,
+	nextMailboxStateToken,
+} from "~/.server/mailbox";
 import { sessionWrapper } from "~/.server/session";
 import { AuthForm } from "~/components/auth-form";
 import { CopyButton } from "~/components/copy-button";
 import { EmailList } from "~/components/email-list";
 import { Button } from "~/components/ui/button";
 import { HeroSection } from "~/components/marketing/hero-section";
-import { formatEmailList } from "~/lib/email";
 import { getLocaleData } from "~/locales/locale";
 
-const EMAIL_LIST_LIMIT = 50;
 const MAILBOX_PREFIX = "mailbox:";
 const MAILBOX_TTL_SECONDS = 60 * 60 * 24;
 
@@ -107,25 +110,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 	}[] = [];
 	if (email) {
 		const db = d1Wrapper(context.cloudflare.env.DB);
-		const emailData = await db.query.emails.findMany({
-			columns: {
-				id: true,
-				subject: true,
-				createdAt: true,
-				messageFrom: true,
-				from: true,
-			},
-			where: (emails, { eq }) => eq(emails.messageTo, email),
-			limit: EMAIL_LIST_LIMIT,
-			orderBy(fields, operators) {
-				return [operators.desc(fields.createdAt)];
-			},
-		});
-		emails = formatEmailList(emailData, lang).map((email) => ({
-			...email,
-			senderLabel:
-				email.from?.name || email.from?.address || email.messageFrom || "",
-		}));
+		emails = await listEmails(db, email, lang);
 	}
 
 	const sampleAddress = `${createRandomLocalPart()}@${domain}`;
@@ -171,6 +156,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
 				);
 			}
 
+			await context.cloudflare.env.KV.put(
+				mailboxStateKey(email),
+				nextMailboxStateToken()
+			);
+
 			session.set("email", email);
 			session.set("mailboxToken", token);
 			return redirect(pathname, {
@@ -185,14 +175,26 @@ export async function action({ request, context }: ActionFunctionArgs) {
 			}
 			const email = session.data.email;
 			const db = d1Wrapper(context.cloudflare.env.DB);
-			await db.delete(schema.emails).where(eq(schema.emails.messageTo, email));
-			if (session.data.mailboxToken) {
-				await releaseMailbox(
-					context.cloudflare.env.KV,
-					email,
-					session.data.mailboxToken
-				);
-			}
+			context.cloudflare.ctx.waitUntil(
+				(async () => {
+					await db
+						.delete(schema.emails)
+						.where(eq(schema.emails.messageTo, email));
+					if (session.data.mailboxToken) {
+						await releaseMailbox(
+							context.cloudflare.env.KV,
+							email,
+							session.data.mailboxToken
+						);
+					}
+					await context.cloudflare.env.KV.put(
+						mailboxStateKey(email),
+						nextMailboxStateToken()
+					);
+				})().catch((err) => {
+					console.error("Failed to purge mailbox:", err);
+				})
+			);
 			session.unset("email");
 			session.unset("mailboxToken");
 			return redirect(pathname, {

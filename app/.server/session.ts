@@ -1,6 +1,6 @@
 import {
 	createCookie,
-	createWorkersKVSessionStorage,
+	createCookieSessionStorage,
 } from "@remix-run/cloudflare";
 
 type SessionData = {
@@ -11,13 +11,13 @@ type SessionData = {
 
 const DEFAULT_COOKIE_SECRET = "defalt_secret";
 
-let storage: ReturnType<typeof createWorkersKVSessionStorage<SessionData>> | null = null;
+let storage: ReturnType<typeof createCookieSessionStorage<SessionData>> | null =
+	null;
 
 export function sessionWrapper(env: Env) {
 	if (!storage) {
 		const sessionCookie = cookieWrapper(env);
-		storage = createWorkersKVSessionStorage<SessionData>({
-			kv: env.KV,
+		storage = createCookieSessionStorage<SessionData>({
 			cookie: sessionCookie,
 		});
 	}

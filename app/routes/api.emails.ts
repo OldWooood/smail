@@ -1,10 +1,9 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { d1Wrapper } from "~/.server/db";
+import { listEmails } from "~/.server/emails";
+import { mailboxStateKey, quoteEtag } from "~/.server/mailbox";
 import { sessionWrapper } from "~/.server/session";
-import { formatEmailList } from "~/lib/email";
-
-const EMAIL_LIST_LIMIT = 50;
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
 	const { getSession } = sessionWrapper(context.cloudflare.env);
@@ -16,26 +15,19 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 		return json({ emails: [] });
 	}
 
-	const db = d1Wrapper(context.cloudflare.env.DB);
-	const emails = await db.query.emails.findMany({
-		columns: {
-			id: true,
-			subject: true,
-			createdAt: true,
-			messageFrom: true,
-			from: true,
-		},
-		where: (emails, { eq }) => eq(emails.messageTo, email),
-		limit: EMAIL_LIST_LIMIT,
-		orderBy(fields, operators) {
-			return [operators.desc(fields.createdAt)];
-		},
-	});
+	const kv = context.cloudflare.env.KV;
+	const stateToken = await kv.get(mailboxStateKey(email));
+	const etag = stateToken ? quoteEtag(stateToken) : null;
 
-	const formattedEmails = formatEmailList(emails, lang).map((email) => ({
-		...email,
-		senderLabel:
-			email.from?.name || email.from?.address || email.messageFrom || "",
-	}));
-	return json({ emails: formattedEmails });
+	if (etag && request.headers.get("If-None-Match") === etag) {
+		return new Response(null, { status: 304, headers: { ETag: etag } });
+	}
+
+	const db = d1Wrapper(context.cloudflare.env.DB);
+	const emails = await listEmails(db, email, lang);
+
+	return json(
+		{ emails },
+		{ headers: etag ? { ETag: etag } : undefined }
+	);
 }

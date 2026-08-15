@@ -18,6 +18,16 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 	}
 	const db = d1Wrapper(context.cloudflare.env.DB);
 	const email = await db.query.emails.findFirst({
+		columns: {
+			id: true,
+			from: true,
+			sender: true,
+			messageFrom: true,
+			subject: true,
+			html: true,
+			text: true,
+			createdAt: true,
+		},
 		where: (emails, { and, eq }) =>
 			and(eq(emails.id, id), eq(emails.messageTo, messageTo)),
 	});

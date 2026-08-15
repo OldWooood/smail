@@ -31,6 +31,7 @@ export function EmailList({ initialEmails, locale }: EmailListProps) {
 	const [error, setError] = useState<string | null>(null);
 	const previousEmailsLength = useRef(initialEmails.length);
 	const abortControllerRef = useRef<AbortController | null>(null);
+	const etagRef = useRef<string | null>(null);
 	const isVisibleRef = useRef(true);
 
 	const fetchEmails = useCallback(async () => {
@@ -45,10 +46,22 @@ export function EmailList({ initialEmails, locale }: EmailListProps) {
 		try {
 			const response = await fetch(`/api/emails`, {
 				signal: abortControllerRef.current.signal,
+				headers: etagRef.current
+					? { "If-None-Match": etagRef.current }
+					: undefined,
 			});
+
+			if (response.status === 304) {
+				return;
+			}
 
 			if (!response.ok) {
 				throw new Error("Failed to fetch emails");
+			}
+
+			const newEtag = response.headers.get("ETag");
+			if (newEtag) {
+				etagRef.current = newEtag;
 			}
 
 			const data = await response.json() as { emails: Email[] };
@@ -166,7 +179,7 @@ export function EmailList({ initialEmails, locale }: EmailListProps) {
 						<div className="divide-y divide-border/50">
 							{emails.map((email) => (
 								<NavLink
-									prefetch="viewport"
+									prefetch="render"
 									viewTransition
 									to={`/emails/${email.id}`}
 									key={email.id}
