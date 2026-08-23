@@ -1,10 +1,11 @@
-import { Turnstile } from "@marsidev/react-turnstile";
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 import { Form, type useNavigation } from "@remix-run/react";
-import { Loader2, Sparkles, AtSign } from "lucide-react";
-import { useEffect, useState, useCallback } from "react";
+import { AtSign, Check, Loader2, Sparkles } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { cn } from "~/lib/utils";
 import type { Locale } from "~/locales/locale";
 
 const DEFAULT_TEST_TURNSTILE_SITE_KEY = "1x00000000000000000000AA";
@@ -34,6 +35,13 @@ export function AuthForm({
 }: AuthFormProps) {
 	const [isDark, setIsDark] = useState(false);
 	const [mounted, setMounted] = useState(false);
+	const [isVerifying, setIsVerifying] = useState(false);
+	const [verifyError, setVerifyError] = useState(false);
+
+	const turnstileRef = useRef<TurnstileInstance>(null);
+	const hasExecutedRef = useRef(false);
+	const pendingExecuteRef = useRef(false);
+	const [widgetReady, setWidgetReady] = useState(false);
 
 	useEffect(() => {
 		setMounted(true);
@@ -45,12 +53,40 @@ export function AuthForm({
 		return () => mql.removeEventListener("change", onChange);
 	}, []);
 
+	const isVerified = token !== "";
+
 	const handleTurnstileSuccess = useCallback(
 		(token: string) => {
+			setIsVerifying(false);
+			setVerifyError(false);
 			setToken(token);
 		},
-		[setToken]
+		[setToken],
 	);
+
+	useEffect(() => {
+		if (widgetReady && pendingExecuteRef.current) {
+			pendingExecuteRef.current = false;
+			turnstileRef.current?.execute();
+		}
+	}, [widgetReady]);
+
+	const handleVerify = useCallback(() => {
+		if (isVerifying || isVerified || navigation.state === "submitting") {
+			return;
+		}
+		setVerifyError(false);
+		setIsVerifying(true);
+		if (hasExecutedRef.current) {
+			turnstileRef.current?.reset();
+		}
+		hasExecutedRef.current = true;
+		if (widgetReady) {
+			turnstileRef.current?.execute();
+		} else {
+			pendingExecuteRef.current = true;
+		}
+	}, [isVerifying, isVerified, navigation.state, widgetReady]);
 
 	return (
 		<div className="space-y-6">
@@ -95,24 +131,85 @@ export function AuthForm({
 						{locale.custom_email.hint}
 					</p>
 					{emailError && (
-						<p className="text-xs text-destructive font-medium">
-							{emailError}
-						</p>
+						<p className="text-xs text-destructive font-medium">{emailError}</p>
 					)}
 				</div>
 
 				{mounted && (
-					<div className="rounded-xl overflow-hidden border border-border/50">
-						<Turnstile
-							siteKey={turnstileSiteKey || DEFAULT_TEST_TURNSTILE_SITE_KEY}
-							options={{
-								theme: isDark ? "dark" : "light",
-								refreshExpired: "auto",
-								language: lang,
-							}}
-							onSuccess={handleTurnstileSuccess}
-							className="flex items-center justify-center"
-						/>
+					<div className="relative">
+						<button
+							type="button"
+							aria-pressed={isVerified}
+							onClick={handleVerify}
+							disabled={isVerifying || navigation.state === "submitting"}
+							className={cn(
+								"flex w-full items-center gap-3 rounded-xl border bg-background px-4 py-3 text-left text-sm transition-all duration-200",
+								"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+								isVerified
+									? "border-primary/40 bg-primary/5"
+									: verifyError
+										? "border-destructive/60 hover:border-destructive/80"
+										: "border-border/50 hover:border-ring/50",
+								(isVerifying || navigation.state === "submitting") &&
+									"cursor-not-allowed opacity-70",
+							)}
+						>
+							<span
+								className={cn(
+									"flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-all duration-200",
+									isVerified
+										? "border-primary bg-primary text-primary-foreground"
+										: "border-input",
+								)}
+							>
+								{isVerifying && (
+									<Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+								)}
+								{isVerified && <Check className="h-3.5 w-3.5" />}
+							</span>
+							<span
+								className={cn(
+									"text-sm",
+									isVerified
+										? "text-foreground"
+										: verifyError
+											? "text-destructive"
+											: "text-muted-foreground",
+								)}
+							>
+								{isVerifying
+									? locale.form.verifying
+									: isVerified
+										? locale.form.verified
+										: verifyError
+											? locale.form.verify_retry
+											: locale.form.verify}
+							</span>
+						</button>
+						<div className="absolute inset-x-0 top-full z-20 flex justify-center pt-2">
+							<Turnstile
+								ref={turnstileRef}
+								siteKey={turnstileSiteKey || DEFAULT_TEST_TURNSTILE_SITE_KEY}
+								options={{
+									theme: isDark ? "dark" : "light",
+									refreshExpired: "auto",
+									language: lang,
+									execution: "execute",
+									appearance: "interaction-only",
+								}}
+								onWidgetLoad={() => setWidgetReady(true)}
+								onSuccess={handleTurnstileSuccess}
+								onExpire={() => {
+									setToken("");
+									setIsVerifying(false);
+								}}
+								onError={() => {
+									setIsVerifying(false);
+									setVerifyError(true);
+									setToken("");
+								}}
+							/>
+						</div>
 					</div>
 				)}
 

@@ -13,9 +13,12 @@
 		"error_invalid": "Solo 3-32 letras, numeros, puntos, guiones bajos o guiones."
 	},
 	"auth": {
-		"title": "El administrador activo la proteccion con contrasena. Ingresa la contrasena:",
+		"title": "El administrador ha activado la proteccion con contrasena, introduce la contrasena:",
 		"msg": "Contrasena incorrecta",
-		"submit": "Enviar"
+		"submit": "Enviar",
+		"password_label": "Contrasena",
+		"password_placeholder": "Introduce la contrasena...",
+		"verifying": "Verificando..."
 	},
 	"hero": {
 		"badge": "Codigo abierto",
@@ -26,7 +29,11 @@
 	"form": {
 		"get_started": "Empezar",
 		"create_address": "Crea una direccion de correo temporal",
-		"creating": "Creando..."
+		"creating": "Creando...",
+		"verify": "Verificar que soy humano",
+		"verifying": "Verificando...",
+		"verified": "Verificado",
+		"verify_retry": "Error de verificacion, haz clic para reintentar"
 	},
 	"list": {
 		"refresh": "Actualizar",
@@ -36,7 +43,9 @@
 		"count_one": "correo",
 		"count_other": "correos",
 		"notification_title": "Nuevo correo",
-		"notification_body": "Has recibido un nuevo correo!"
+		"notification_body": "Has recibido un nuevo correo!",
+		"notify_enable": "Activar notificaciones",
+		"notify_enabled": "Notificaciones activadas"
 	},
 	"detail": {
 		"back": "Volver",
@@ -44,7 +53,9 @@
 	},
 	"mailbox": {
 		"copy": "Copiar correo",
-		"delete": "Eliminar"
+		"delete": "Eliminar",
+		"delete_confirm": "Haz clic de nuevo para confirmar",
+		"expires_hint": "Esta direccion caduca automaticamente 24 horas despues de crearla"
 	},
 	"nav": {
 		"tagline": "Bandeja temporal",

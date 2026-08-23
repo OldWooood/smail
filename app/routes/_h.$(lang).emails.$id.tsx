@@ -1,15 +1,24 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { Link, useLoaderData } from "@remix-run/react";
-import { format } from "date-fns";
-import { ArrowLeft, Mail, Clock, User } from "lucide-react";
+import { ArrowLeft, Clock, Mail, User } from "lucide-react";
+import { useEffect, useState } from "react";
 import { d1Wrapper } from "~/.server/db";
 import { sessionWrapper } from "~/.server/session";
 import { Button } from "~/components/ui/button";
-import { ScrollArea } from "~/components/ui/scroll-area";
+import { formatEmailDate } from "~/lib/email";
 import { getLocaleData } from "~/locales/locale";
+
+function escapeHtml(text: string) {
+	return text
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;");
+}
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
 	const id = params.id as string;
+	const lang = params.lang || "en";
 	const { getSession } = sessionWrapper(context.cloudflare.env);
 	const session = await getSession(request.headers.get("Cookie"));
 	const messageTo = session.data.email;
@@ -38,27 +47,58 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 		email.from?.address || email.sender?.address || email.messageFrom || "";
 	const newEmail = {
 		...email,
-		createdAt: format(email.createdAt, "yyyy/MM/dd HH:mm:ss"),
+		createdAt: formatEmailDate(email.createdAt, lang),
 		senderAddress,
 	};
-	const locale = await getLocaleData(params.lang || "en");
+	const locale = await getLocaleData(lang);
 	return { locale, email: newEmail };
+}
+
+function useDarkMode() {
+	const [isDark, setIsDark] = useState(false);
+
+	useEffect(() => {
+		const update = () =>
+			setIsDark(document.documentElement.classList.contains("dark"));
+		update();
+		const observer = new MutationObserver(update);
+		observer.observe(document.documentElement, {
+			attributes: true,
+			attributeFilter: ["class"],
+		});
+		return () => observer.disconnect();
+	}, []);
+
+	return isDark;
 }
 
 export default function EmailDetail() {
 	const { locale, email } = useLoaderData<typeof loader>();
+	const isDark = useDarkMode();
+
+	const rawContent = email.html
+		? email.html
+		: email.text
+			? `<pre style="margin:0;padding:20px;white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;line-height:1.6">${escapeHtml(
+					email.text,
+				)}</pre>`
+			: "";
+
+	const srcDoc = isDark
+		? `${rawContent}<style>html{background:transparent;color-scheme:dark}body{background:transparent}</style>`
+		: rawContent;
 
 	return (
 		<div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
 			<div className="space-y-6">
 				<div className="flex items-center gap-4">
 					<Button
-					asChild
-					variant="outline"
-					size="icon"
-					aria-label={locale.detail.back}
-					className="shrink-0"
-				>
+						asChild
+						variant="outline"
+						size="icon"
+						aria-label={locale.detail.back}
+						className="shrink-0"
+					>
 						<Link prefetch="viewport" viewTransition to="/">
 							<ArrowLeft className="h-4 w-4" />
 						</Link>
@@ -102,15 +142,14 @@ export default function EmailDetail() {
 						</div>
 					</div>
 
-					<ScrollArea className="h-[calc(100vh-320px)] min-h-[400px]">
+					<div className="h-[calc(100dvh-320px)] min-h-[400px] bg-background">
 						<iframe
 							title={email.subject || "Email Content"}
-							srcDoc={email.html || email.text || ""}
-							className="w-full h-full min-h-[400px] bg-background"
-							sandbox="allow-scripts"
-							loading="lazy"
+							srcDoc={srcDoc}
+							className="h-full w-full bg-background"
+							sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"
 						/>
-					</ScrollArea>
+					</div>
 				</div>
 			</div>
 		</div>

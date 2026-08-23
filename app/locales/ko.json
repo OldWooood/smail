@@ -15,7 +15,10 @@
 	"auth": {
 		"title": "관리자가 비밀번호 보호를 활성화했습니다. 비밀번호를 입력하세요:",
 		"msg": "비밀번호 오류",
-		"submit": "제출"
+		"submit": "제출",
+		"password_label": "비밀번호",
+		"password_placeholder": "비밀번호를 입력하세요...",
+		"verifying": "확인 중..."
 	},
 	"hero": {
 		"badge": "오픈소스",
@@ -26,7 +29,11 @@
 	"form": {
 		"get_started": "시작하기",
 		"create_address": "임시 이메일 주소 만들기",
-		"creating": "만드는 중..."
+		"creating": "만드는 중...",
+		"verify": "저는 로봇이 아닙니다",
+		"verifying": "확인 중...",
+		"verified": "확인 완료",
+		"verify_retry": "인증에 실패했습니다. 다시 시도해 주세요"
 	},
 	"list": {
 		"refresh": "새로고침",
@@ -36,7 +43,9 @@
 		"count_one": "개 이메일",
 		"count_other": "개 이메일",
 		"notification_title": "새 이메일",
-		"notification_body": "새 이메일을 받았습니다!"
+		"notification_body": "새 이메일을 받았습니다!",
+		"notify_enable": "알림 켜기",
+		"notify_enabled": "알림 켜짐"
 	},
 	"detail": {
 		"back": "뒤로",
@@ -44,7 +53,9 @@
 	},
 	"mailbox": {
 		"copy": "이메일 복사",
-		"delete": "삭제"
+		"delete": "삭제",
+		"delete_confirm": "다시 클릭하여 삭제 확인",
+		"expires_hint": "이 주소는 생성 후 24시간 후 자동 만료됩니다"
 	},
 	"nav": {
 		"tagline": "임시 받은편지함",

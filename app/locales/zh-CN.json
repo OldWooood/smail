@@ -15,7 +15,10 @@
 	"auth": {
 		"title": "管理员开启了密码保护, 请输入密码:",
 		"msg": "密码错误",
-		"submit": "提交"
+		"submit": "提交",
+		"password_label": "密码",
+		"password_placeholder": "输入密码...",
+		"verifying": "验证中..."
 	},
 	"hero": {
 		"badge": "开源",
@@ -26,7 +29,11 @@
 	"form": {
 		"get_started": "开始使用",
 		"create_address": "创建一个临时邮箱地址",
-		"creating": "创建中..."
+		"creating": "创建中...",
+		"verify": "确认我是真人",
+		"verifying": "正在验证...",
+		"verified": "验证成功",
+		"verify_retry": "验证失败，请点击重试"
 	},
 	"list": {
 		"refresh": "刷新",
@@ -36,7 +43,9 @@
 		"count_one": "封邮件",
 		"count_other": "封邮件",
 		"notification_title": "新邮件",
-		"notification_body": "你收到了一封新邮件!"
+		"notification_body": "你收到了一封新邮件!",
+		"notify_enable": "开启新邮件通知",
+		"notify_enabled": "通知已开启"
 	},
 	"detail": {
 		"back": "返回",
@@ -44,7 +53,9 @@
 	},
 	"mailbox": {
 		"copy": "复制邮箱",
-		"delete": "删除"
+		"delete": "删除",
+		"delete_confirm": "再次点击确认删除",
+		"expires_hint": "该地址将在创建 24 小时后自动过期"
 	},
 	"nav": {
 		"tagline": "临时收件箱",

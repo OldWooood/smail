@@ -15,7 +15,10 @@
 	"auth": {
 		"title": "L administrateur a active la protection par mot de passe, veuillez saisir le mot de passe :",
 		"msg": "Mot de passe incorrect",
-		"submit": "Envoyer"
+		"submit": "Envoyer",
+		"password_label": "Mot de passe",
+		"password_placeholder": "Entrez le mot de passe...",
+		"verifying": "Verification..."
 	},
 	"hero": {
 		"badge": "Open source",
@@ -26,7 +29,11 @@
 	"form": {
 		"get_started": "Commencer",
 		"create_address": "Creez une adresse email jetable",
-		"creating": "Creation..."
+		"creating": "Creation...",
+		"verify": "Verifier que je suis humain",
+		"verifying": "Verification...",
+		"verified": "Verifie",
+		"verify_retry": "Echec de la verification, cliquez pour reessayer"
 	},
 	"list": {
 		"refresh": "Actualiser",
@@ -36,7 +43,9 @@
 		"count_one": "email",
 		"count_other": "emails",
 		"notification_title": "Nouvel email",
-		"notification_body": "Vous avez recu un nouvel email !"
+		"notification_body": "Vous avez recu un nouvel email !",
+		"notify_enable": "Activer les notifications",
+		"notify_enabled": "Notifications activees"
 	},
 	"detail": {
 		"back": "Retour",
@@ -44,7 +53,9 @@
 	},
 	"mailbox": {
 		"copy": "Copier l'email",
-		"delete": "Supprimer"
+		"delete": "Supprimer",
+		"delete_confirm": "Cliquez a nouveau pour confirmer",
+		"expires_hint": "Cette adresse expire automatiquement 24 heures apres sa creation"
 	},
 	"nav": {
 		"tagline": "Boite de reception jetable",

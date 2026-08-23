@@ -15,7 +15,10 @@
 	"auth": {
 		"title": "The administrator has enabled password protection, please enter the password:",
 		"msg": "Password error",
-		"submit": "Submit"
+		"submit": "Submit",
+		"password_label": "Password",
+		"password_placeholder": "Enter password...",
+		"verifying": "Verifying..."
 	},
 	"hero": {
 		"badge": "Open Source",
@@ -26,7 +29,11 @@
 	"form": {
 		"get_started": "Get Started",
 		"create_address": "Create a temporary email address",
-		"creating": "Creating..."
+		"creating": "Creating...",
+		"verify": "Verify you are human",
+		"verifying": "Verifying...",
+		"verified": "Verified",
+		"verify_retry": "Verification failed, click to retry"
 	},
 	"list": {
 		"refresh": "Refresh",
@@ -36,7 +43,9 @@
 		"count_one": "email",
 		"count_other": "emails",
 		"notification_title": "New Email",
-		"notification_body": "You have received a new email!"
+		"notification_body": "You have received a new email!",
+		"notify_enable": "Enable notifications",
+		"notify_enabled": "Notifications enabled"
 	},
 	"detail": {
 		"back": "Back",
@@ -44,7 +53,9 @@
 	},
 	"mailbox": {
 		"copy": "Copy Email",
-		"delete": "Delete"
+		"delete": "Delete",
+		"delete_confirm": "Click again to confirm",
+		"expires_hint": "This address expires automatically 24 hours after creation"
 	},
 	"nav": {
 		"tagline": "Temporary Inbox",

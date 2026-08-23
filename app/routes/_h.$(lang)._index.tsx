@@ -13,29 +13,27 @@ import {
 } from "@remix-run/react";
 import randomName from "@scaleway/random-name";
 import { eq } from "drizzle-orm";
-import { Trash2 } from "lucide-react";
+import { Clock4, Loader2, Trash2 } from "lucide-react";
 import { customAlphabet } from "nanoid";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { d1Wrapper, schema } from "~/.server/db";
 import { listEmails } from "~/.server/emails";
-import {
-	mailboxStateKey,
-	nextMailboxStateToken,
-} from "~/.server/mailbox";
+import { mailboxStateKey, nextMailboxStateToken } from "~/.server/mailbox";
 import { sessionWrapper } from "~/.server/session";
 import { AuthForm } from "~/components/auth-form";
 import { CopyButton } from "~/components/copy-button";
 import { EmailList } from "~/components/email-list";
-import { Button } from "~/components/ui/button";
 import { HeroSection } from "~/components/marketing/hero-section";
-import { getLocaleData } from "~/locales/locale";
+import { Button } from "~/components/ui/button";
+import { cn } from "~/lib/utils";
+import { type Locale, getLocaleData } from "~/locales/locale";
 
 const MAILBOX_PREFIX = "mailbox:";
 const MAILBOX_TTL_SECONDS = 60 * 60 * 24;
 
 const tokenAlphabet = customAlphabet(
 	"abcdefghijklmnopqrstuvwxyz0123456789",
-	12
+	12,
 );
 const numericSuffix = customAlphabet("0123456789", 4);
 
@@ -142,7 +140,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 			if (rawLocalPart && !normalizedLocal) {
 				return json<ActionData>(
 					{ error: "invalid_local", localPart: rawLocalPart },
-					{ status: 400 }
+					{ status: 400 },
 				);
 			}
 
@@ -152,13 +150,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
 			if (!token) {
 				return json<ActionData>(
 					{ error: "email_taken", localPart: rawLocalPart },
-					{ status: 409 }
+					{ status: 409 },
 				);
 			}
 
 			await context.cloudflare.env.KV.put(
 				mailboxStateKey(email),
-				nextMailboxStateToken()
+				nextMailboxStateToken(),
 			);
 
 			session.set("email", email);
@@ -184,16 +182,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
 						await releaseMailbox(
 							context.cloudflare.env.KV,
 							email,
-							session.data.mailboxToken
+							session.data.mailboxToken,
 						);
 					}
 					await context.cloudflare.env.KV.put(
 						mailboxStateKey(email),
-						nextMailboxStateToken()
+						nextMailboxStateToken(),
 					);
 				})().catch((err) => {
 					console.error("Failed to purge mailbox:", err);
-				})
+				}),
 			);
 			session.unset("email");
 			session.unset("mailboxToken");
@@ -207,9 +205,131 @@ export async function action({ request, context }: ActionFunctionArgs) {
 	return null;
 }
 
+function MailboxCard({
+	locale,
+	displayEmail,
+}: {
+	locale: Locale;
+	displayEmail: string;
+}) {
+	const navigation = useNavigation();
+	const [confirmDelete, setConfirmDelete] = useState(false);
+	const deleteFormRef = useRef<HTMLFormElement>(null);
+	const confirmTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+	const isDeleting =
+		navigation.state !== "idle" && navigation.formMethod === "DELETE";
+
+	useEffect(
+		() => () => {
+			if (confirmTimerRef.current) {
+				clearTimeout(confirmTimerRef.current);
+			}
+		},
+		[],
+	);
+
+	const handleDeleteClick = () => {
+		if (navigation.state !== "idle") return;
+		if (!confirmDelete) {
+			setConfirmDelete(true);
+			if (confirmTimerRef.current) {
+				clearTimeout(confirmTimerRef.current);
+			}
+			confirmTimerRef.current = setTimeout(() => setConfirmDelete(false), 3000);
+			return;
+		}
+		if (confirmTimerRef.current) {
+			clearTimeout(confirmTimerRef.current);
+			confirmTimerRef.current = null;
+		}
+		setConfirmDelete(false);
+		deleteFormRef.current?.requestSubmit();
+	};
+
+	return (
+		<div className="order-first lg:order-none lg:sticky lg:top-24 lg:self-start">
+			<div className="glass space-y-5 rounded-2xl p-5">
+				<div className="flex items-center gap-3">
+					<div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
+						<span className="text-lg font-bold">@</span>
+					</div>
+					<div className="flex-1 min-w-0">
+						<p className="truncate font-mono text-sm font-semibold text-foreground sm:text-base">
+							{displayEmail}
+						</p>
+						<p className="mt-1 flex items-start gap-1.5 text-xs text-muted-foreground">
+							<Clock4 className="mt-0.5 h-3 w-3 shrink-0" />
+							{locale.mailbox.expires_hint}
+						</p>
+					</div>
+				</div>
+				<div className="flex items-center gap-2">
+					<CopyButton content={displayEmail || ""} variant="default">
+						{locale.mailbox.copy}
+					</CopyButton>
+					<Form
+						method="DELETE"
+						viewTransition
+						className="ml-auto"
+						ref={deleteFormRef}
+					>
+						<Button
+							variant="destructive"
+							size="sm"
+							type="button"
+							aria-label={
+								confirmDelete
+									? locale.mailbox.delete_confirm
+									: locale.mailbox.delete
+							}
+							onClick={handleDeleteClick}
+							disabled={isDeleting}
+							className={cn(
+								"transition-all duration-200",
+								confirmDelete &&
+									!isDeleting &&
+									"ring-2 ring-destructive/30 ring-offset-2 ring-offset-background",
+							)}
+						>
+							{isDeleting ? (
+								<Loader2 className="h-4 w-4 animate-spin" />
+							) : (
+								<Trash2
+									className={cn(
+										"h-4 w-4 transition-transform duration-200 motion-reduce:transition-none",
+										confirmDelete && "scale-110",
+									)}
+								/>
+							)}
+							<span
+								className={cn(
+									"overflow-hidden whitespace-nowrap text-[11px] font-medium transition-all duration-200 ease-out motion-reduce:transition-none",
+									confirmDelete && !isDeleting
+										? "ml-0 max-w-[140px] opacity-100"
+										: "-ml-2 max-w-0 opacity-0",
+								)}
+							>
+								{locale.mailbox.delete_confirm}
+							</span>
+						</Button>
+					</Form>
+				</div>
+			</div>
+		</div>
+	);
+}
+
 export default function Index() {
-	const { lang, locale, turnstileSiteKey, email, emails, domain, sampleAddress } =
-		useLoaderData<typeof loader>();
+	const {
+		lang,
+		locale,
+		turnstileSiteKey,
+		email,
+		emails,
+		domain,
+		sampleAddress,
+	} = useLoaderData<typeof loader>();
 	const actionData = useActionData<ActionData>();
 	const navigation = useNavigation();
 	const displayEmail = email ? email.toLowerCase() : null;
@@ -218,44 +338,16 @@ export default function Index() {
 
 	return (
 		<>
-			{email ? (
+			{email && displayEmail ? (
 				<section className="animate-reveal py-8 sm:py-12">
 					<div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
 						<div className="grid gap-8 lg:grid-cols-[1fr_400px]">
 							<EmailList initialEmails={emails} locale={locale} />
-						<div className="lg:sticky lg:top-24 lg:self-start">
-							<div className="glass space-y-5 rounded-2xl p-5">
-								<div className="flex items-center gap-3">
-									<div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
-										<span className="text-lg font-bold">@</span>
-									</div>
-									<div className="flex-1 min-w-0">
-										<p className="truncate font-mono text-base font-semibold text-foreground">
-											{displayEmail}
-										</p>
-										<p className="mt-0.5 text-xs text-muted-foreground">
-											{locale.card_description}
-										</p>
-									</div>
-								</div>
-								<div className="flex items-center gap-2">
-									<CopyButton content={displayEmail || ""}>
-										{locale.mailbox.copy}
-									</CopyButton>
-									<Form method="DELETE" viewTransition className="ml-auto">
-										<Button
-											variant="destructive"
-											size="sm"
-											type="submit"
-											aria-label={locale.mailbox.delete}
-											disabled={navigation.formMethod === "DELETE"}
-										>
-											<Trash2 className="h-4 w-4" />
-										</Button>
-									</Form>
-								</div>
-							</div>
-						</div>
+							<MailboxCard
+								key={displayEmail}
+								locale={locale}
+								displayEmail={displayEmail}
+							/>
 						</div>
 					</div>
 				</section>

@@ -1,5 +1,5 @@
 import { Check, Copy } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 
@@ -11,12 +11,12 @@ interface CopyButtonProps {
 	size?: "default" | "sm" | "lg" | "icon";
 }
 
-export function CopyButton({ 
-	content, 
+export function CopyButton({
+	content,
 	children,
 	className,
 	variant = "secondary",
-	size = "default"
+	size = "default",
 }: CopyButtonProps) {
 	const [status, setStatus] = useState<"idle" | "copied">("idle");
 
@@ -32,8 +32,8 @@ export function CopyButton({
 	}
 
 	return (
-		<Button 
-			variant={variant} 
+		<Button
+			variant={variant}
 			size={size}
 			onClick={copy}
 			className={cn("gap-2 transition-all duration-200", className)}

@@ -20,7 +20,7 @@ export function ArrivalChip({ address, locale }: ArrivalChipProps) {
 			transition={{
 				duration: 6,
 				times: [0, 0.12, 0.85, 1],
-				repeat: Infinity,
+				repeat: Number.POSITIVE_INFINITY,
 				repeatDelay: 2.5,
 				ease: "easeOut",
 			}}

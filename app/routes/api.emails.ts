@@ -26,8 +26,5 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 	const db = d1Wrapper(context.cloudflare.env.DB);
 	const emails = await listEmails(db, email, lang);
 
-	return json(
-		{ emails },
-		{ headers: etag ? { ETag: etag } : undefined }
-	);
+	return json({ emails }, { headers: etag ? { ETag: etag } : undefined });
 }

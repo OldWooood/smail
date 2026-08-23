@@ -1,3 +1,5 @@
+import { match } from "@formatjs/intl-localematcher";
+import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import {
 	Link,
 	Outlet,
@@ -6,15 +8,13 @@ import {
 	useLocation,
 	useParams,
 } from "@remix-run/react";
-import { match } from "@formatjs/intl-localematcher";
+import { Check, ChevronDown, Globe, Moon, Sun } from "lucide-react";
 import Negotiator from "negotiator";
-import { Moon, Sun } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { sessionWrapper } from "~/.server/session";
 import { GitHubIcon } from "~/icons/github";
 import { cn } from "~/lib/utils";
-import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
-import { sessionWrapper } from "~/.server/session";
-import { getLocaleData, type Locale } from "~/locales/locale";
-import { useEffect, useState } from "react";
+import { type Locale, getLocaleData } from "~/locales/locale";
 
 const localeOptions = [
 	{ code: "en", label: "EN", title: "English" },
@@ -66,7 +66,9 @@ function ThemeToggle({ locale }: { locale: Locale }) {
 		if (saved) {
 			setTheme(saved);
 		} else {
-			const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+			const prefersDark = window.matchMedia(
+				"(prefers-color-scheme: dark)",
+			).matches;
 			setTheme(prefersDark ? "dark" : "light");
 		}
 	}, []);
@@ -80,7 +82,10 @@ function ThemeToggle({ locale }: { locale: Locale }) {
 
 	if (!mounted) {
 		return (
-			<button className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/50 bg-background/50">
+			<button
+				type="button"
+				className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/50 bg-background/50"
+			>
 				<Sun className="h-4 w-4" />
 			</button>
 		);
@@ -88,14 +93,100 @@ function ThemeToggle({ locale }: { locale: Locale }) {
 
 	return (
 		<button
+			type="button"
 			onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
 			className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/50 bg-background/50 text-foreground/70 transition-all hover:bg-background hover:text-foreground"
 			aria-label={
 				theme === "dark" ? locale.nav.light_mode : locale.nav.dark_mode
 			}
 		>
-			{theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+			{theme === "dark" ? (
+				<Sun className="h-4 w-4" />
+			) : (
+				<Moon className="h-4 w-4" />
+			)}
 		</button>
+	);
+}
+
+function MobileLangMenu({
+	currentLang,
+	buildLangHref,
+}: {
+	currentLang: string;
+	buildLangHref: (code: string) => string;
+}) {
+	const [open, setOpen] = useState(false);
+	const menuRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		if (!open) return;
+		const onPointerDown = (e: PointerEvent) => {
+			if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+				setOpen(false);
+			}
+		};
+		const onKeyDown = (e: KeyboardEvent) => {
+			if (e.key === "Escape") setOpen(false);
+		};
+		document.addEventListener("pointerdown", onPointerDown);
+		document.addEventListener("keydown", onKeyDown);
+		return () => {
+			document.removeEventListener("pointerdown", onPointerDown);
+			document.removeEventListener("keydown", onKeyDown);
+		};
+	}, [open]);
+
+	return (
+		<div ref={menuRef} className="relative sm:hidden">
+			<button
+				type="button"
+				onClick={() => setOpen((v) => !v)}
+				aria-expanded={open}
+				aria-haspopup="menu"
+				className="flex h-9 items-center gap-1 rounded-lg border border-border/50 bg-background/50 px-2.5 text-foreground/70 transition-all hover:bg-background hover:text-foreground"
+			>
+				<Globe className="h-4 w-4" />
+				<span className="text-xs font-medium">
+					{localeOptions.find((l) => l.code === currentLang)?.label}
+				</span>
+				<ChevronDown
+					className={cn(
+						"h-3 w-3 transition-transform duration-200",
+						open && "rotate-180",
+					)}
+				/>
+			</button>
+			{open && (
+				<div
+					role="menu"
+					className="glass absolute right-0 top-full z-50 mt-2 min-w-[160px] rounded-xl p-1.5 animate-scale-in"
+				>
+					{localeOptions.map((option) => {
+						const isActive = option.code === currentLang;
+						return (
+							<Link
+								key={option.code}
+								to={buildLangHref(option.code)}
+								prefetch="intent"
+								role="menuitem"
+								title={option.title}
+								onClick={() => setOpen(false)}
+								className={cn(
+									"flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+									isActive
+										? "bg-primary/10 font-medium text-primary"
+										: "text-foreground/80 hover:bg-muted/60",
+								)}
+							>
+								{option.title}
+								{isActive && <Check className="h-3.5 w-3.5" />}
+							</Link>
+						);
+					})}
+				</div>
+			)}
+		</div>
 	);
 }
 
@@ -108,8 +199,7 @@ export default function HomeLayout() {
 
 	const buildLangHref = (code: string) => {
 		const segments = location.pathname.split("/").filter(Boolean);
-		const hasLangPrefix =
-			segments.length > 0 && localeCodes.has(segments[0]);
+		const hasLangPrefix = segments.length > 0 && localeCodes.has(segments[0]);
 		const rest = hasLangPrefix ? segments.slice(1) : segments;
 		const basePath = rest.length ? `/${rest.join("/")}` : "";
 		const prefix = code === "en" ? "" : `/${code}`;
@@ -119,8 +209,11 @@ export default function HomeLayout() {
 
 	return (
 		<div className="relative isolate flex min-h-dvh flex-col overflow-hidden bg-background">
-			<div aria-hidden className="pointer-events-none fixed inset-0 z-0 app-gradient" />
-			
+			<div
+				aria-hidden
+				className="pointer-events-none fixed inset-0 z-0 app-gradient"
+			/>
+
 			<header className="sticky top-0 z-50 w-full glass header-glass">
 				<div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
 					<Link to="/" className="group flex items-center gap-3">
@@ -154,7 +247,7 @@ export default function HomeLayout() {
 											"px-2.5 py-1 text-xs font-medium rounded-md transition-all",
 											isActive
 												? "bg-primary text-primary-foreground shadow-sm"
-												: "text-muted-foreground hover:text-foreground hover:bg-background"
+												: "text-muted-foreground hover:text-foreground hover:bg-background",
 										)}
 									>
 										{locale.label}
@@ -164,6 +257,10 @@ export default function HomeLayout() {
 						</nav>
 
 						<div className="flex items-center gap-2">
+							<MobileLangMenu
+								currentLang={currentLang}
+								buildLangHref={buildLangHref}
+							/>
 							<ThemeToggle locale={locale} />
 							<Link
 								to="https://github.com/OldWooood/smail"
@@ -181,6 +278,23 @@ export default function HomeLayout() {
 			<main className="relative z-10 flex-1">
 				<Outlet />
 			</main>
+
+			<footer className="relative z-10 border-t border-border/40 py-6">
+				<div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 sm:flex-row sm:px-6 lg:px-8">
+					<p className="text-xs text-muted-foreground">
+						TempEmail — {locale.nav.tagline}
+					</p>
+					<Link
+						to="https://github.com/OldWooood/smail"
+						target="_blank"
+						rel="noreferrer"
+						className="flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+					>
+						<GitHubIcon className="h-3.5 w-3.5" />
+						GitHub
+					</Link>
+				</div>
+			</footer>
 		</div>
 	);
 }

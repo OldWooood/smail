@@ -12,11 +12,7 @@ export type EmailListItem = {
 	senderLabel: string;
 };
 
-export async function listEmails(
-	db: DBDatabase,
-	email: string,
-	lang: string
-) {
+export async function listEmails(db: DBDatabase, email: string, lang: string) {
 	const emailData = await db.query.emails.findMany({
 		columns: {
 			id: true,

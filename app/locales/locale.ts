@@ -16,6 +16,9 @@ export interface Locale {
 		title: string;
 		msg: string;
 		submit: string;
+		password_label: string;
+		password_placeholder: string;
+		verifying: string;
 	};
 	hero: {
 		badge: string;
@@ -27,6 +30,10 @@ export interface Locale {
 		get_started: string;
 		create_address: string;
 		creating: string;
+		verify: string;
+		verifying: string;
+		verified: string;
+		verify_retry: string;
 	};
 	list: {
 		refresh: string;
@@ -37,6 +44,8 @@ export interface Locale {
 		count_other: string;
 		notification_title: string;
 		notification_body: string;
+		notify_enable: string;
+		notify_enabled: string;
 	};
 	detail: {
 		back: string;
@@ -45,6 +54,8 @@ export interface Locale {
 	mailbox: {
 		copy: string;
 		delete: string;
+		delete_confirm: string;
+		expires_hint: string;
 	};
 	nav: {
 		tagline: string;

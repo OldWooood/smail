@@ -1,4 +1,4 @@
-import { drizzle, type DrizzleD1Database } from "drizzle-orm/d1";
+import { type DrizzleD1Database, drizzle } from "drizzle-orm/d1";
 import * as s from "~/drizzle/schema";
 
 export const schema = s;

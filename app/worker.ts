@@ -34,25 +34,26 @@ async function storeEmail(message: ForwardableEmailMessage, env: Env) {
 		text: mail.text,
 		attachments: mail.attachments,
 	});
-	await env.KV.put(
-		mailboxStateKey(message.to),
-		nextMailboxStateToken()
-	);
+	await env.KV.put(mailboxStateKey(message.to), nextMailboxStateToken());
 }
 
 export default {
 	fetch: PagesFunction.fetch,
-	async email(message: ForwardableEmailMessage, env: Env, ctx: ExecutionContext) {
+	async email(
+		message: ForwardableEmailMessage,
+		env: Env,
+		ctx: ExecutionContext,
+	) {
 		if (message.rawSize > MAX_EMAIL_RAW_SIZE) {
 			console.error(
-				`Skipping oversized email to ${message.to}: ${message.rawSize} bytes`
+				`Skipping oversized email to ${message.to}: ${message.rawSize} bytes`,
 			);
 			return;
 		}
 		ctx.waitUntil(
 			storeEmail(message, env).catch((err) => {
 				console.error("Failed to store email:", err);
-			})
+			}),
 		);
 	},
 } satisfies ExportedHandler<Env>;

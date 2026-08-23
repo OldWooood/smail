@@ -7,7 +7,11 @@ interface HeroSectionProps {
 	locale: Locale;
 }
 
-export function HeroSection({ children, sampleAddress, locale }: HeroSectionProps) {
+export function HeroSection({
+	children,
+	sampleAddress,
+	locale,
+}: HeroSectionProps) {
 	return (
 		<section className="relative flex min-h-[calc(100dvh-4rem)] items-center overflow-hidden pt-20 sm:pt-24 pb-20">
 			<div
@@ -40,10 +44,7 @@ export function HeroSection({ children, sampleAddress, locale }: HeroSectionProp
 					</div>
 
 					<div className="relative">
-						<div
-							aria-hidden
-							className="pointer-events-none absolute -inset-12"
-						>
+						<div aria-hidden className="pointer-events-none absolute -inset-12">
 							<div className="light-pool light-pool-a absolute right-0 top-0 h-72 w-72 rounded-full bg-primary/25 blur-3xl" />
 							<div className="light-pool light-pool-b absolute bottom-0 left-10 h-56 w-56 rounded-full bg-chart-3/15 blur-3xl" />
 						</div>

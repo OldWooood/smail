@@ -13,9 +13,12 @@
 		"error_invalid": "3〜32文字の英数字、ドット、アンダースコア、ハイフンのみ使用できます。"
 	},
 	"auth": {
-		"title": "管理者がパスワード保護を有効にしました。パスワードを入力してください：",
-		"msg": "パスワードが違います",
-		"submit": "送信"
+		"title": "管理者がパスワード保護を有効にしています。パスワードを入力してください:",
+		"msg": "パスワードが正しくありません",
+		"submit": "送信",
+		"password_label": "パスワード",
+		"password_placeholder": "パスワードを入力...",
+		"verifying": "確認中..."
 	},
 	"hero": {
 		"badge": "オープンソース",
@@ -25,8 +28,12 @@
 	},
 	"form": {
 		"get_started": "はじめる",
-		"create_address": "一時メールアドレスを作成",
-		"creating": "作成中..."
+		"create_address": "使い捨てメールアドレスを作成",
+		"creating": "作成中...",
+		"verify": "私はロボットではありません",
+		"verifying": "確認中...",
+		"verified": "確認完了",
+		"verify_retry": "認証に失敗しました。もう一度お試しください"
 	},
 	"list": {
 		"refresh": "更新",
@@ -36,7 +43,9 @@
 		"count_one": "通のメール",
 		"count_other": "通のメール",
 		"notification_title": "新しいメール",
-		"notification_body": "新しいメールを受信しました!"
+		"notification_body": "新しいメールを受信しました!",
+		"notify_enable": "通知を有効にする",
+		"notify_enabled": "通知が有効になりました"
 	},
 	"detail": {
 		"back": "戻る",
@@ -44,7 +53,9 @@
 	},
 	"mailbox": {
 		"copy": "メールをコピー",
-		"delete": "削除"
+		"delete": "削除",
+		"delete_confirm": "もう一度クリックで削除",
+		"expires_hint": "このアドレスは作成から24時間後に自動的に失効します"
 	},
 	"nav": {
 		"tagline": "一時受信トレイ",

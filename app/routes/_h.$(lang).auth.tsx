@@ -9,10 +9,10 @@ import {
 	useLoaderData,
 	useNavigation,
 } from "@remix-run/react";
-import { Lock, Loader2 } from "lucide-react";
+import { Loader2, Lock } from "lucide-react";
 import { sessionWrapper } from "~/.server/session";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { getLocaleData } from "~/locales/locale";
@@ -62,19 +62,16 @@ export default function Auth() {
 						<CardTitle className="text-xl font-semibold text-center">
 							{locale.auth.title}
 						</CardTitle>
-						<CardDescription className="text-center">
-							Please enter the password to continue
-						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<div className="space-y-2">
-							<Label htmlFor="password">Password</Label>
-							<Input 
-								id="password" 
-								name="password" 
-								type="password" 
-								placeholder="Enter password..."
-								required 
+							<Label htmlFor="password">{locale.auth.password_label}</Label>
+							<Input
+								id="password"
+								name="password"
+								type="password"
+								placeholder={locale.auth.password_placeholder}
+								required
 							/>
 						</div>
 						{actionData?.error && (
@@ -82,7 +79,7 @@ export default function Auth() {
 								{locale.auth.msg}
 							</p>
 						)}
-						<Button 
+						<Button
 							type="submit"
 							disabled={navigation.state === "submitting"}
 							className="w-full"
@@ -90,7 +87,7 @@ export default function Auth() {
 							{navigation.state === "submitting" ? (
 								<>
 									<Loader2 className="h-4 w-4 animate-spin" />
-									Verifying...
+									{locale.auth.verifying}
 								</>
 							) : (
 								locale.auth.submit
