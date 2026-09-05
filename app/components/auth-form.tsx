@@ -186,7 +186,16 @@ export function AuthForm({
 											: locale.form.verify}
 							</span>
 						</button>
-						<div className="absolute inset-x-0 top-full z-20 flex justify-center pt-2">
+						<div
+							className={cn(
+								"absolute inset-x-0 top-full z-20 flex justify-center pt-2",
+								isVerified
+									? // 验证通过后彻底隐藏，避免遮挡下方的获取邮箱按钮
+										"hidden"
+									: // 未验证时让容器本身透传点击，仅小组件可交互，避免隐形 iframe 阻挡按钮
+										"pointer-events-none [&>div]:pointer-events-auto",
+							)}
+						>
 							<Turnstile
 								ref={turnstileRef}
 								siteKey={turnstileSiteKey || DEFAULT_TEST_TURNSTILE_SITE_KEY}
