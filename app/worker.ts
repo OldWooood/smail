@@ -2,7 +2,12 @@ import { lt } from "drizzle-orm";
 import PagesFunction from "build/worker";
 import PostalMime from "postal-mime";
 import { d1Wrapper, schema } from "./.server/db";
-import { mailboxStateKey, nextMailboxStateToken } from "./.server/mailbox";
+import {
+	MAILBOX_STATE_TTL_SECONDS,
+	mailboxClaimKey,
+	mailboxStateKey,
+	nextMailboxStateToken,
+} from "./.server/mailbox";
 
 const postalMime = new PostalMime();
 
@@ -13,46 +18,35 @@ const MAX_HTML_CHARS = 400_000;
 const MAX_TEXT_CHARS = 100_000;
 // Old rows are removed by the scheduled cleanup (wrangler `triggers.crons`).
 const RETENTION_DAYS = 7;
+// Purge runs in bounded batches so a single cron invocation can't blow past
+// D1/CPU limits no matter how many rows expired.
+const PURGE_BATCH_SIZE = 1000;
+const PURGE_MAX_BATCHES = 100;
 
 function truncate(value: string | undefined, max: number) {
 	if (!value) return value;
 	return value.length > max ? `${value.slice(0, max)}…` : value;
 }
 
-type StoredAttachment = {
-	filename?: string | null;
-	mimeType?: string;
-	disposition?: string | null;
-	size?: number;
-};
+// Only columns ever read by the app are stored (list/detail/body select
+// id, from, sender, messageFrom, subject, html, text, createdAt).
+// headers/to/cc/bcc/metadata are never selected, so they are not written.
 
-function stripAttachments(attachments: unknown): StoredAttachment[] {
-	if (!Array.isArray(attachments)) return [];
-	return attachments.slice(0, 20).map((item) => {
-		const a = item as {
-			filename?: string | null;
-			mimeType?: string;
-			disposition?: string | null;
-			size?: number;
-			content?: unknown;
-		};
-		return {
-			filename: a.filename ?? null,
-			mimeType: a.mimeType,
-			disposition: a.disposition ?? null,
-			size:
-				typeof a.size === "number"
-					? a.size
-					: a.content instanceof ArrayBuffer
-						? a.content.byteLength
-						: undefined,
-		};
-	});
+async function isClaimed(kv: KVNamespace, to: string) {
+	try {
+		return (await kv.get(mailboxClaimKey(to))) != null;
+	} catch (err) {
+		console.error("Failed to check mailbox claim, accepting mail:", err);
+		// Fail open: a KV hiccup must never silently drop legitimate mail.
+		return true;
+	}
 }
 
 async function bumpMailbox(kv: KVNamespace, to: string) {
 	try {
-		await kv.put(mailboxStateKey(to), nextMailboxStateToken());
+		await kv.put(mailboxStateKey(to), nextMailboxStateToken(), {
+			expirationTtl: MAILBOX_STATE_TTL_SECONDS,
+		});
 	} catch (err) {
 		console.error("Failed to bump mailbox state:", err);
 	}
@@ -66,7 +60,6 @@ async function storeOversizedNotice(
 	const db = d1Wrapper(env.DB);
 	const normalizedTo = to.toLowerCase();
 	await db.insert(schema.emails).values({
-		domain: normalizedTo.split("@")[1] || "",
 		messageFrom: "",
 		messageTo: normalizedTo,
 		headers: [],
@@ -86,30 +79,36 @@ async function storeEmail(message: ForwardableEmailMessage, env: Env) {
 	const mail = await postalMime.parse(text);
 	const db = d1Wrapper(env.DB);
 	const to = message.to.toLowerCase();
-	const domain = message.from?.split("@")?.[1] || "";
 	await db.insert(schema.emails).values({
-		domain,
 		messageFrom: message.from,
 		messageTo: to,
-		headers: mail.headers,
+		headers: [],
 		from: mail.from,
 		sender: mail.sender,
-		replyTo: mail.replyTo,
-		deliveredTo: mail.deliveredTo,
-		returnPath: mail.returnPath,
-		to: mail.to,
-		cc: mail.cc,
-		bcc: mail.bcc,
 		subject: mail.subject?.slice(0, 500),
-		messageId: mail.messageId,
-		inReplyTo: mail.inReplyTo,
-		references: mail.references,
-		date: mail.date,
 		html: truncate(mail.html, MAX_HTML_CHARS),
 		text: truncate(mail.text, MAX_TEXT_CHARS),
-		attachments: stripAttachments(mail.attachments) as unknown as never,
+		attachments: [],
 	});
 	await bumpMailbox(env.KV, message.to);
+}
+
+async function handleEmail(message: ForwardableEmailMessage, env: Env) {
+	// P0: drop mail for addresses nobody claimed before paying for
+	// parse + D1. This is the main spam/abuse shield: without it anyone can
+	// burn D1 writes and storage by mailing random addresses.
+	if (!(await isClaimed(env.KV, message.to))) {
+		console.log(`Dropping email to unclaimed address ${message.to}`);
+		return;
+	}
+	if (message.rawSize > MAX_EMAIL_RAW_SIZE) {
+		console.error(
+			`Oversized email to ${message.to}: ${message.rawSize} bytes`,
+		);
+		await storeOversizedNotice(message.to, message.rawSize, env);
+		return;
+	}
+	await storeEmail(message, env);
 }
 
 export default {
@@ -119,19 +118,8 @@ export default {
 		env: Env,
 		ctx: ExecutionContext,
 	) {
-		if (message.rawSize > MAX_EMAIL_RAW_SIZE) {
-			console.error(
-				`Oversized email to ${message.to}: ${message.rawSize} bytes`,
-			);
-			ctx.waitUntil(
-				storeOversizedNotice(message.to, message.rawSize, env).catch((err) => {
-					console.error("Failed to store oversized notice:", err);
-				}),
-			);
-			return;
-		}
 		ctx.waitUntil(
-			storeEmail(message, env).catch((err) => {
+			handleEmail(message, env).catch((err) => {
 				console.error("Failed to store email:", err);
 			}),
 		);
@@ -143,9 +131,17 @@ export default {
 					Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000,
 				);
 				const db = d1Wrapper(env.DB);
-				await db
-					.delete(schema.emails)
-					.where(lt(schema.emails.createdAt, cutoff));
+				for (let i = 0; i < PURGE_MAX_BATCHES; i++) {
+					await db
+						.delete(schema.emails)
+						.where(lt(schema.emails.createdAt, cutoff))
+						.limit(PURGE_BATCH_SIZE);
+					const remaining = await db.query.emails.findFirst({
+						columns: { id: true },
+						where: (emails, { lt: ltOp }) => ltOp(emails.createdAt, cutoff),
+					});
+					if (!remaining) break;
+				}
 			})().catch((err) => {
 				console.error("Failed to purge old emails:", err);
 			}),

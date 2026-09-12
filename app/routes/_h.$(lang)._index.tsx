@@ -19,7 +19,12 @@ import { customAlphabet } from "nanoid";
 import { useEffect, useRef, useState } from "react";
 import { d1Wrapper, schema } from "~/.server/db";
 import { listEmails } from "~/.server/emails";
-import { mailboxStateKey, nextMailboxStateToken } from "~/.server/mailbox";
+import {
+	MAILBOX_STATE_TTL_SECONDS,
+	mailboxClaimKey,
+	mailboxStateKey,
+	nextMailboxStateToken,
+} from "~/.server/mailbox";
 import { sessionWrapper } from "~/.server/session";
 import { verifyTurnstile } from "~/.server/turnstile";
 import { AuthForm } from "~/components/auth-form";
@@ -30,7 +35,6 @@ import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 import { type Locale, getLocaleData } from "~/locales/locale";
 
-const MAILBOX_PREFIX = "mailbox:";
 const MAILBOX_TTL_SECONDS = 60 * 60 * 24;
 
 const tokenAlphabet = customAlphabet(
@@ -54,7 +58,7 @@ function getDomain(env: Env) {
 }
 
 function mailboxKey(email: string) {
-	return `${MAILBOX_PREFIX}${email}`;
+	return mailboxClaimKey(email);
 }
 
 function normalizeLocalPart(input: string) {
@@ -194,6 +198,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 			await context.cloudflare.env.KV.put(
 				mailboxStateKey(email),
 				nextMailboxStateToken(),
+				{ expirationTtl: MAILBOX_STATE_TTL_SECONDS },
 			);
 
 			session.set("email", email);
@@ -225,6 +230,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 					await context.cloudflare.env.KV.put(
 						mailboxStateKey(email),
 						nextMailboxStateToken(),
+						{ expirationTtl: MAILBOX_STATE_TTL_SECONDS },
 					);
 				})().catch((err) => {
 					console.error("Failed to purge mailbox:", err);
