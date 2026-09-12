@@ -32,7 +32,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
 			context.cloudflare.env,
 		);
 		const session = await getSession(request.headers.get("Cookie"));
-		session.set("password", password);
+		session.set("authed", true);
+		session.unset("password");
 		return redirect("/", {
 			headers: {
 				"Set-Cookie": await commitSession(session),

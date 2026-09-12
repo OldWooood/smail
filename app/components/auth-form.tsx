@@ -19,6 +19,7 @@ interface AuthFormProps {
 	setToken: (token: string) => void;
 	token: string;
 	emailError?: string;
+	verifyError?: string;
 	defaultLocalPart?: string;
 }
 
@@ -31,6 +32,7 @@ export function AuthForm({
 	setToken,
 	token,
 	emailError,
+	verifyError: serverVerifyError,
 	defaultLocalPart,
 }: AuthFormProps) {
 	const [isDark, setIsDark] = useState(false);
@@ -71,6 +73,20 @@ export function AuthForm({
 		}
 	}, [widgetReady]);
 
+	// Turnstile tokens are single-use and expire quickly: after a server-side
+	// rejection the old token must be discarded and the widget reset,
+	// otherwise the next submit would reuse a consumed token.
+	useEffect(() => {
+		if (serverVerifyError) {
+			setToken("");
+			setIsVerifying(false);
+			setVerifyError(true);
+			hasExecutedRef.current = false;
+			pendingExecuteRef.current = false;
+			turnstileRef.current?.reset();
+		}
+	}, [serverVerifyError, setToken]);
+
 	const handleVerify = useCallback(() => {
 		if (isVerifying || isVerified || navigation.state === "submitting") {
 			return;
@@ -107,6 +123,7 @@ export function AuthForm({
 			</div>
 
 			<Form method="POST" viewTransition className="space-y-5">
+				<input type="hidden" name="cf-turnstile-response" value={token} />
 				<div className="space-y-3">
 					<Label htmlFor="localPart" className="text-sm font-medium">
 						{locale.custom_email.label}
@@ -131,7 +148,12 @@ export function AuthForm({
 						{locale.custom_email.hint}
 					</p>
 					{emailError && (
-						<p className="text-xs text-destructive font-medium">{emailError}</p>
+						<p role="alert" className="text-xs text-destructive font-medium">{emailError}</p>
+					)}
+					{serverVerifyError && (
+						<p role="alert" className="text-xs text-destructive font-medium">
+							{serverVerifyError}
+						</p>
 					)}
 				</div>
 
@@ -211,6 +233,8 @@ export function AuthForm({
 								onExpire={() => {
 									setToken("");
 									setIsVerifying(false);
+									// Token expired before submit: force explicit re-verify.
+									if (hasExecutedRef.current) setVerifyError(true);
 								}}
 								onError={() => {
 									setIsVerifying(false);

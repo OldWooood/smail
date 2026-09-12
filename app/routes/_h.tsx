@@ -31,10 +31,10 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 		const { getSession } = sessionWrapper(context.cloudflare.env);
 		const session = await getSession(request.headers.get("Cookie"));
 		const { pathname } = new URL(request.url);
-		if (
-			session.data.password !== context.cloudflare.env.PASSWORD &&
-			!pathname.includes("auth")
-		) {
+		const isAuthed =
+			session.data.authed === true ||
+			session.data.password === context.cloudflare.env.PASSWORD;
+		if (!isAuthed && !pathname.includes("auth")) {
 			return redirect("/auth");
 		}
 	}
@@ -208,13 +208,13 @@ export default function HomeLayout() {
 	};
 
 	return (
-		<div className="relative isolate flex min-h-dvh flex-col overflow-hidden bg-background">
+		<div className="relative isolate flex h-dvh flex-col overflow-hidden overscroll-none bg-background">
 			<div
 				aria-hidden
 				className="pointer-events-none fixed inset-0 z-0 app-gradient"
 			/>
 
-			<header className="sticky top-0 z-50 w-full glass header-glass">
+			<header className="z-50 w-full shrink-0 glass header-glass">
 				<div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
 					<Link to="/" className="group flex items-center gap-3">
 						<img
@@ -275,26 +275,9 @@ export default function HomeLayout() {
 				</div>
 			</header>
 
-			<main className="relative z-10 flex-1">
+			<main className="relative z-10 flex min-h-0 flex-1 flex-col">
 				<Outlet />
 			</main>
-
-			<footer className="relative z-10 border-t border-border/40 py-6">
-				<div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 sm:flex-row sm:px-6 lg:px-8">
-					<p className="text-xs text-muted-foreground">
-						TempEmail — {locale.nav.tagline}
-					</p>
-					<Link
-						to="https://github.com/OldWooood/smail"
-						target="_blank"
-						rel="noreferrer"
-						className="flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
-					>
-						<GitHubIcon className="h-3.5 w-3.5" />
-						GitHub
-					</Link>
-				</div>
-			</footer>
 		</div>
 	);
 }

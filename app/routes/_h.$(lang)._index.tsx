@@ -1,5 +1,6 @@
 import type {
 	ActionFunctionArgs,
+	LinksFunction,
 	LoaderFunctionArgs,
 } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
@@ -20,6 +21,7 @@ import { d1Wrapper, schema } from "~/.server/db";
 import { listEmails } from "~/.server/emails";
 import { mailboxStateKey, nextMailboxStateToken } from "~/.server/mailbox";
 import { sessionWrapper } from "~/.server/session";
+import { verifyTurnstile } from "~/.server/turnstile";
 import { AuthForm } from "~/components/auth-form";
 import { CopyButton } from "~/components/copy-button";
 import { EmailList } from "~/components/email-list";
@@ -38,7 +40,12 @@ const tokenAlphabet = customAlphabet(
 const numericSuffix = customAlphabet("0123456789", 4);
 
 type ActionData = {
-	error: "invalid_local" | "email_taken" | "already_assigned";
+	error:
+		| "invalid_local"
+		| "email_taken"
+		| "already_assigned"
+		| "verify_required"
+		| "verify_failed";
 	localPart?: string;
 };
 
@@ -80,8 +87,12 @@ async function releaseMailbox(kv: KVNamespace, email: string, token: string) {
 	}
 }
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => [
+export const links: LinksFunction = () => [
 	{ rel: "preconnect", href: "https://challenges.cloudflare.com" },
+	{ rel: "dns-prefetch", href: "https://challenges.cloudflare.com" },
+];
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => [
 	{ title: "TempEmail - Temporary Email Service" },
 	{
 		name: "description",
@@ -136,6 +147,32 @@ export async function action({ request, context }: ActionFunctionArgs) {
 			}
 			const formData = await request.formData();
 			const rawLocalPart = String(formData.get("localPart") || "");
+			const turnstileToken = String(
+				formData.get("cf-turnstile-response") || "",
+			);
+			const turnstileSecret = context.cloudflare.env.TURNSTILE_SECRET_KEY;
+			if (turnstileSecret) {
+				if (!turnstileToken) {
+					return json<ActionData>(
+						{ error: "verify_required", localPart: rawLocalPart },
+						{ status: 400 },
+					);
+				}
+				const remoteIp =
+					request.headers.get("CF-Connecting-IP") ||
+					request.headers.get("X-Forwarded-For");
+				const ok = await verifyTurnstile(
+					turnstileToken,
+					turnstileSecret,
+					remoteIp,
+				);
+				if (!ok) {
+					return json<ActionData>(
+						{ error: "verify_failed", localPart: rawLocalPart },
+						{ status: 403 },
+					);
+				}
+			}
 			const normalizedLocal = normalizeLocalPart(rawLocalPart);
 			if (rawLocalPart && !normalizedLocal) {
 				return json<ActionData>(
@@ -177,7 +214,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 				(async () => {
 					await db
 						.delete(schema.emails)
-						.where(eq(schema.emails.messageTo, email));
+						.where(eq(schema.emails.messageTo, email.toLowerCase()));
 					if (session.data.mailboxToken) {
 						await releaseMailbox(
 							context.cloudflare.env.KV,
@@ -214,6 +251,7 @@ function MailboxCard({
 }) {
 	const navigation = useNavigation();
 	const [confirmDelete, setConfirmDelete] = useState(false);
+	const [expanded, setExpanded] = useState(false);
 	const deleteFormRef = useRef<HTMLFormElement>(null);
 	const confirmTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -248,30 +286,42 @@ function MailboxCard({
 	};
 
 	return (
-		<div className="order-first lg:order-none lg:sticky lg:top-24 lg:self-start">
-			<div className="glass space-y-5 rounded-2xl p-5">
-				<div className="flex items-center gap-3">
-					<div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
-						<span className="text-lg font-bold">@</span>
+		<div className="order-first min-h-0 shrink-0 lg:order-none lg:self-start">
+			<div className="glass flex flex-row items-center gap-2 rounded-2xl p-3 sm:p-4 lg:flex-col lg:items-stretch lg:gap-0 lg:space-y-5 lg:p-5">
+				<div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+					<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20 sm:h-12 sm:w-12">
+						<span className="text-base font-bold sm:text-lg">@</span>
 					</div>
 					<div className="flex-1 min-w-0">
-						<p className="truncate font-mono text-sm font-semibold text-foreground sm:text-base">
+						<button
+							type="button"
+							onClick={() => setExpanded((v) => !v)}
+							aria-expanded={expanded}
+							title={displayEmail}
+							className={cn(
+								"block w-full text-left font-mono text-xs font-semibold text-foreground sm:text-base",
+								expanded ? "break-all whitespace-normal" : "truncate",
+							)}
+						>
 							{displayEmail}
-						</p>
-						<p className="mt-1 flex items-start gap-1.5 text-xs text-muted-foreground">
+						</button>
+						<p className="mt-1 hidden items-start gap-1.5 text-xs text-muted-foreground lg:flex">
 							<Clock4 className="mt-0.5 h-3 w-3 shrink-0" />
 							{locale.mailbox.expires_hint}
 						</p>
 					</div>
 				</div>
-				<div className="flex items-center gap-2">
-					<CopyButton content={displayEmail || ""} variant="default">
-						{locale.mailbox.copy}
+				<div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+					<CopyButton
+						content={displayEmail || ""}
+						variant="default"
+						className="px-2.5 sm:px-4"
+					>
+						<span className="hidden md:inline">{locale.mailbox.copy}</span>
 					</CopyButton>
 					<Form
 						method="DELETE"
 						viewTransition
-						className="ml-auto"
 						ref={deleteFormRef}
 					>
 						<Button
@@ -283,6 +333,8 @@ function MailboxCard({
 									? locale.mailbox.delete_confirm
 									: locale.mailbox.delete
 							}
+							aria-live="polite"
+							aria-expanded={confirmDelete}
 							onClick={handleDeleteClick}
 							disabled={isDeleting}
 							className={cn(
@@ -339,10 +391,15 @@ export default function Index() {
 	return (
 		<>
 			{email && displayEmail ? (
-				<section className="animate-reveal py-8 sm:py-12">
-					<div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-						<div className="grid gap-8 lg:grid-cols-[1fr_400px]">
-							<EmailList initialEmails={emails} locale={locale} />
+				<section className="flex min-h-0 flex-1 flex-col overflow-hidden py-4 sm:py-6">
+					<div className="mx-auto flex w-full max-w-7xl min-h-0 flex-1 flex-col px-4 sm:px-6 lg:px-8">
+						<div className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_400px] lg:grid-rows-none lg:gap-8">
+							<EmailList
+								initialEmails={emails}
+								locale={locale}
+								lang={lang}
+								mailbox={displayEmail}
+							/>
 							<MailboxCard
 								key={displayEmail}
 								locale={locale}
@@ -370,6 +427,12 @@ export default function Index() {
 										: actionData?.error === "invalid_local"
 											? locale.custom_email.error_invalid
 											: undefined
+								}
+								verifyError={
+									actionData?.error === "verify_required" ||
+									actionData?.error === "verify_failed"
+										? locale.form.verify_retry
+										: undefined
 								}
 							/>
 						</div>

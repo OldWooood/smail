@@ -16,10 +16,12 @@ interface Email {
 interface EmailListProps {
 	initialEmails: Email[];
 	locale: Locale;
+	lang: string;
+	mailbox: string;
 }
 
 const REFRESH_INTERVAL = 10000;
-const SEEN_STORAGE_KEY = "smail_seen_emails";
+const SEEN_KEY_PREFIX = "smail_seen_emails:";
 
 type NotificationState = "unsupported" | "default" | "granted" | "denied";
 
@@ -44,9 +46,13 @@ function avatarLabel(email: Email) {
 	return [...source.trim()][0]?.toUpperCase() || "@";
 }
 
-function loadSeenIds(): Set<string> {
+function seenKey(mailbox: string) {
+	return `${SEEN_KEY_PREFIX}${mailbox.toLowerCase()}`;
+}
+
+function loadSeenIds(key: string): Set<string> {
 	try {
-		const raw = localStorage.getItem(SEEN_STORAGE_KEY);
+		const raw = localStorage.getItem(key);
 		if (!raw) return new Set();
 		const parsed = JSON.parse(raw);
 		return Array.isArray(parsed) ? new Set(parsed as string[]) : new Set();
@@ -55,12 +61,9 @@ function loadSeenIds(): Set<string> {
 	}
 }
 
-function persistSeenIds(seen: Set<string>) {
+function persistSeenIds(key: string, seen: Set<string>) {
 	try {
-		localStorage.setItem(
-			SEEN_STORAGE_KEY,
-			JSON.stringify([...seen].slice(-300)),
-		);
+		localStorage.setItem(key, JSON.stringify([...seen].slice(-300)));
 	} catch {
 		// storage unavailable, unread state stays in memory only
 	}
@@ -71,83 +74,118 @@ function emailsChanged(a: Email[], b: Email[]) {
 	return a.some((email, i) => email.id !== b[i].id);
 }
 
-export function EmailList({ initialEmails, locale }: EmailListProps) {
+export function EmailList({
+	initialEmails,
+	locale,
+	lang,
+	mailbox,
+}: EmailListProps) {
 	const [emails, setEmails] = useState<Email[]>(initialEmails);
-	const [isLoading, setIsLoading] = useState(false);
+	const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [seenIds, setSeenIds] = useState<Set<string>>(() => new Set());
 	const [mounted, setMounted] = useState(false);
 	const [notificationState, setNotificationState] =
 		useState<NotificationState>("unsupported");
 
-	const previousEmailsLength = useRef(initialEmails.length);
+	const previousIdsRef = useRef<Set<string>>(new Set(initialEmails.map((e) => e.id)));
 	const abortControllerRef = useRef<AbortController | null>(null);
 	const etagRef = useRef<string | null>(null);
 	const isVisibleRef = useRef(true);
+	const mailboxRef = useRef(mailbox);
+	const originalTitleRef = useRef<string>("");
 
-	const fetchEmails = useCallback(async () => {
-		if (abortControllerRef.current) {
-			abortControllerRef.current.abort();
+	const storageKey = seenKey(mailbox);
+
+	const fetchEmails = useCallback(
+		async (opts?: { silent?: boolean }) => {
+			const silent = opts?.silent ?? false;
+			if (typeof navigator !== "undefined" && !navigator.onLine) return;
+			if (abortControllerRef.current) {
+				abortControllerRef.current.abort();
+			}
+
+			abortControllerRef.current = new AbortController();
+			if (!silent) {
+				setIsManualRefreshing(true);
+				setError(null);
+			}
+
+			try {
+				const response = await fetch("/api/emails", {
+					signal: abortControllerRef.current.signal,
+					headers: etagRef.current
+						? { "If-None-Match": etagRef.current }
+						: undefined,
+				});
+
+				if (response.status === 304) {
+					return;
+				}
+
+				if (!response.ok) {
+					throw new Error("Failed to fetch emails");
+				}
+
+				const newEtag = response.headers.get("ETag");
+				if (newEtag) {
+					etagRef.current = newEtag;
+				}
+
+				const data = (await response.json()) as { emails: Email[] };
+				setEmails((prev) =>
+					emailsChanged(prev, data.emails) ? data.emails : prev,
+				);
+				if (!silent) setError(null);
+			} catch (err) {
+				if (err instanceof Error && err.name !== "AbortError") {
+					if (!silent) setError(err.message);
+					console.error("Failed to fetch emails:", err);
+				}
+			} finally {
+				if (!silent) setIsManualRefreshing(false);
+			}
+		},
+		[],
+	);
+
+	const fetchSilent = useCallback(() => fetchEmails({ silent: true }), [fetchEmails]);
+	const fetchManual = useCallback(() => fetchEmails({ silent: false }), [fetchEmails]);
+
+	// (Re)initialize per mailbox so seen-state, ETag and baseline never leak
+	// across addresses.
+	useEffect(() => {
+		setMounted(true);
+		if (typeof document !== "undefined" && !originalTitleRef.current) {
+			originalTitleRef.current = document.title;
 		}
-
-		abortControllerRef.current = new AbortController();
-		setIsLoading(true);
-		setError(null);
-
-		try {
-			const response = await fetch("/api/emails", {
-				signal: abortControllerRef.current.signal,
-				headers: etagRef.current
-					? { "If-None-Match": etagRef.current }
-					: undefined,
-			});
-
-			if (response.status === 304) {
-				return;
-			}
-
-			if (!response.ok) {
-				throw new Error("Failed to fetch emails");
-			}
-
-			const newEtag = response.headers.get("ETag");
-			if (newEtag) {
-				etagRef.current = newEtag;
-			}
-
-			const data = (await response.json()) as { emails: Email[] };
-			setEmails((prev) =>
-				emailsChanged(prev, data.emails) ? data.emails : prev,
-			);
-		} catch (err) {
-			if (err instanceof Error && err.name !== "AbortError") {
-				setError(err.message);
-				console.error("Failed to fetch emails:", err);
-			}
-		} finally {
-			setIsLoading(false);
+		if (typeof Notification !== "undefined") {
+			setNotificationState(Notification.permission as NotificationState);
 		}
 	}, []);
 
 	useEffect(() => {
-		setMounted(true);
-
-		const seen = loadSeenIds();
+		const key = seenKey(mailbox);
+		const seen = loadSeenIds(key);
 		for (const email of initialEmails) {
 			seen.add(email.id);
 		}
-		persistSeenIds(seen);
+		persistSeenIds(key, seen);
 		setSeenIds(seen);
-
-		if (typeof Notification !== "undefined") {
-			setNotificationState(Notification.permission as NotificationState);
+		if (mailboxRef.current !== mailbox) {
+			mailboxRef.current = mailbox;
+			etagRef.current = null;
+			setEmails(initialEmails);
+			previousIdsRef.current = new Set(initialEmails.map((e) => e.id));
+			setError(null);
 		}
-	}, [initialEmails]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [mailbox, initialEmails]);
 
 	useEffect(() => {
 		const interval = setInterval(() => {
 			if (isVisibleRef.current) {
-				fetchEmails();
+				fetchSilent();
 			}
 		}, REFRESH_INTERVAL);
 
@@ -158,7 +196,7 @@ export function EmailList({ initialEmails, locale }: EmailListProps) {
 					abortControllerRef.current.abort();
 				}
 			} else {
-				fetchEmails();
+				fetchSilent();
 			}
 		};
 		document.addEventListener("visibilitychange", onVisibility);
@@ -170,30 +208,40 @@ export function EmailList({ initialEmails, locale }: EmailListProps) {
 				abortControllerRef.current.abort();
 			}
 		};
-	}, [fetchEmails]);
+	}, [fetchSilent]);
 
+	// Notify on genuinely new IDs (not just length changes), and flash the
+	// document title so users without Notification permission still notice.
 	useEffect(() => {
-		if (emails.length > previousEmailsLength.current) {
+		const prev = previousIdsRef.current;
+		const fresh = emails.filter((e) => !prev.has(e.id));
+		previousIdsRef.current = new Set(emails.map((e) => e.id));
+		if (fresh.length > 0 && prev.size > 0) {
 			if (
 				typeof Notification !== "undefined" &&
 				Notification.permission === "granted"
 			) {
-				new Notification(locale.list.notification_title, {
-					body: locale.list.notification_body,
-				});
+				try {
+					new Notification(locale.list.notification_title, {
+						body: locale.list.notification_body,
+					});
+				} catch {
+					// Notification construction can throw in some browsers; title flash below still applies.
+				}
 			}
 		}
-		previousEmailsLength.current = emails.length;
-	}, [
-		emails.length,
-		locale.list.notification_title,
-		locale.list.notification_body,
-	]);
+	}, [emails, locale.list.notification_title, locale.list.notification_body]);
+
+	const unreadCount = mounted ? emails.filter((e) => !seenIds.has(e.id)).length : 0;
 
 	useEffect(() => {
-		setEmails(initialEmails);
-		previousEmailsLength.current = initialEmails.length;
-	}, [initialEmails]);
+		if (typeof document === "undefined") return;
+		if (unreadCount > 0) {
+			document.title = `(${unreadCount}) ${originalTitleRef.current || "TempEmail"}`;
+		} else if (originalTitleRef.current) {
+			document.title = originalTitleRef.current;
+		}
+	}, [unreadCount]);
 
 	const enableNotifications = useCallback(async () => {
 		if (typeof Notification === "undefined") return;
@@ -205,19 +253,27 @@ export function EmailList({ initialEmails, locale }: EmailListProps) {
 		}
 	}, []);
 
-	const markSeen = useCallback((id: string) => {
-		setSeenIds((prev) => {
-			if (prev.has(id)) return prev;
-			const next = new Set(prev);
-			next.add(id);
-			persistSeenIds(next);
-			return next;
-		});
-	}, []);
+	const markSeen = useCallback(
+		(id: string) => {
+			setSeenIds((prev) => {
+				if (prev.has(id)) return prev;
+				const next = new Set(prev);
+				next.add(id);
+				persistSeenIds(storageKey, next);
+				return next;
+			});
+		},
+		[storageKey],
+	);
+
+	const detailHref = useCallback(
+		(id: string) => (lang === "en" ? `/emails/${id}` : `/${lang}/emails/${id}`),
+		[lang],
+	);
 
 	return (
-		<div className="flex flex-col w-full min-h-0 gap-4">
-			<div className="flex items-center justify-between">
+		<div className="flex h-full w-full min-h-0 flex-col gap-4">
+			<div className="flex shrink-0 items-center justify-between">
 				<div className="flex items-center gap-3">
 					<div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
 						<Mail className="h-5 w-5" />
@@ -259,13 +315,13 @@ export function EmailList({ initialEmails, locale }: EmailListProps) {
 					<Button
 						size="sm"
 						variant="outline"
-						onClick={fetchEmails}
-						disabled={isLoading}
+						onClick={fetchManual}
+						disabled={isManualRefreshing}
 						className="gap-2"
 					>
 						<RefreshCw
 							className={cn("h-4 w-4", {
-								"animate-spin": isLoading,
+								"animate-spin": isManualRefreshing,
 							})}
 						/>
 						<span className="hidden sm:inline">{locale.list.refresh}</span>
@@ -273,8 +329,11 @@ export function EmailList({ initialEmails, locale }: EmailListProps) {
 				</div>
 			</div>
 
-			<div className="glass flex-1 min-h-0 overflow-hidden rounded-2xl">
-				<ScrollArea className="h-full max-h-[420px] sm:max-h-[520px] lg:max-h-[calc(100dvh-13rem)] custom-scrollbar">
+			<div
+				aria-live="polite"
+				className="glass flex-1 min-h-0 overflow-hidden rounded-2xl"
+			>
+				<ScrollArea className="h-full custom-scrollbar">
 					{emails.length === 0 ? (
 						<div className="flex flex-col items-center justify-center px-4 py-16">
 							<div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20">
@@ -295,7 +354,7 @@ export function EmailList({ initialEmails, locale }: EmailListProps) {
 									<NavLink
 										prefetch="render"
 										viewTransition
-										to={`/emails/${email.id}`}
+										to={detailHref(email.id)}
 										key={email.id}
 										onClick={() => markSeen(email.id)}
 										className={({ isActive }) =>

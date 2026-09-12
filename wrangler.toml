@@ -20,3 +20,6 @@ migrations_dir = "app/drizzle"
 
 [vars]
 DOMAIN = "deatrg.top"
+
+[triggers]
+crons = ["0 3 * * *"]

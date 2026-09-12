@@ -13,6 +13,7 @@ export type EmailListItem = {
 };
 
 export async function listEmails(db: DBDatabase, email: string, lang: string) {
+	const key = email.toLowerCase();
 	const emailData = await db.query.emails.findMany({
 		columns: {
 			id: true,
@@ -21,13 +22,13 @@ export async function listEmails(db: DBDatabase, email: string, lang: string) {
 			messageFrom: true,
 			from: true,
 		},
-		where: (emails, { eq }) => eq(emails.messageTo, email),
+		where: (emails, { eq }) => eq(emails.messageTo, key),
 		limit: EMAIL_LIST_LIMIT,
 		orderBy(fields, operators) {
 			return [operators.desc(fields.createdAt)];
 		},
 	});
-	return formatEmailList(emailData, lang).map((email) => ({
+	return (await formatEmailList(emailData, lang)).map((email) => ({
 		...email,
 		senderLabel:
 			email.from?.name || email.from?.address || email.messageFrom || "",

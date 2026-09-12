@@ -1,5 +1,6 @@
 import { MailCheck } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
+import { useEffect, useState } from "react";
 import type { Locale } from "~/locales/locale";
 
 interface ArrivalChipProps {
@@ -7,10 +8,25 @@ interface ArrivalChipProps {
 	locale: Locale;
 }
 
+function usePageVisible() {
+	const [visible, setVisible] = useState(true);
+	useEffect(() => {
+		if (typeof document === "undefined") return;
+		setVisible(!document.hidden);
+		const onChange = () => setVisible(!document.hidden);
+		document.addEventListener("visibilitychange", onChange);
+		return () => document.removeEventListener("visibilitychange", onChange);
+	}, []);
+	return visible;
+}
+
 export function ArrivalChip({ address, locale }: ArrivalChipProps) {
 	const reduce = useReducedMotion();
+	const pageVisible = usePageVisible();
 
 	if (reduce) return null;
+	// Pause the infinite demo animation while the tab is hidden to save CPU.
+	if (!pageVisible) return null;
 
 	return (
 		<motion.div

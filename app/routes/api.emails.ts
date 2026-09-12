@@ -12,7 +12,10 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 	const email = session.data.email;
 
 	if (!email) {
-		return json({ emails: [] });
+		return json(
+			{ emails: [] },
+			{ headers: { "Cache-Control": "private, no-store", "Vary": "Cookie" } },
+		);
 	}
 
 	const kv = context.cloudflare.env.KV;
@@ -20,11 +23,27 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 	const etag = stateToken ? quoteEtag(stateToken) : null;
 
 	if (etag && request.headers.get("If-None-Match") === etag) {
-		return new Response(null, { status: 304, headers: { ETag: etag } });
+		return new Response(null, {
+			status: 304,
+			headers: {
+				ETag: etag,
+				"Cache-Control": "private, no-store",
+				Vary: "Cookie",
+			},
+		});
 	}
 
 	const db = d1Wrapper(context.cloudflare.env.DB);
 	const emails = await listEmails(db, email, lang);
 
-	return json({ emails }, { headers: etag ? { ETag: etag } : undefined });
+	return json(
+		{ emails },
+		{
+			headers: {
+				"Cache-Control": "private, no-store",
+				Vary: "Cookie",
+				...(etag ? { ETag: etag } : undefined),
+			},
+		},
+	);
 }
