@@ -1,14 +1,163 @@
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/jetbrains-mono";
+@import "tailwindcss";
+@import "tw-animate-css";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@custom-variant dark (&:is(.dark *));
 
-html,
-body {
-	@apply bg-background text-foreground antialiased;
-	font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+:root {
+	--background: hsl(0 0% 100%);
+	--foreground: hsl(222 47% 11%);
+	--card: hsl(0 0% 100%);
+	--card-foreground: hsl(222 47% 11%);
+	--popover: hsl(0 0% 100%);
+	--popover-foreground: hsl(222 47% 11%);
+	--primary: hsl(262 83% 58%);
+	--primary-foreground: hsl(0 0% 100%);
+	--secondary: hsl(210 40% 96%);
+	--secondary-foreground: hsl(222 47% 11%);
+	--muted: hsl(210 40% 96%);
+	--muted-foreground: hsl(215 16% 47%);
+	--accent: hsl(262 83% 58%);
+	--accent-foreground: hsl(0 0% 100%);
+	--destructive: hsl(0 84% 60%);
+	--destructive-foreground: hsl(0 0% 100%);
+	--border: hsl(214 32% 91%);
+	--input: hsl(214 32% 91%);
+	--ring: hsl(262 83% 58%);
+	--radius: 0.75rem;
+	--glass: hsl(0 0% 100%);
+	--glass-border: hsl(214 32% 91%);
+	--chart-1: hsl(262 83% 58%);
+	--chart-2: hsl(285 90% 62%);
+	--chart-3: hsl(262 73% 52%);
+	--chart-4: hsl(38 92% 50%);
+	--chart-5: hsl(270 67% 47%);
+	--success: hsl(160 84% 39%);
+	--success-foreground: hsl(0 0% 100%);
+	--warning: hsl(38 92% 50%);
+	--warning-foreground: hsl(0 0% 100%);
+}
+
+.dark {
+	--background: hsl(222 47% 6%);
+	--foreground: hsl(210 40% 98%);
+	--card: hsl(222 47% 8%);
+	--card-foreground: hsl(210 40% 98%);
+	--popover: hsl(222 47% 8%);
+	--popover-foreground: hsl(210 40% 98%);
+	--primary: hsl(260 90% 74%);
+	--primary-foreground: hsl(222 47% 6%);
+	--secondary: hsl(217 33% 17%);
+	--secondary-foreground: hsl(210 40% 98%);
+	--muted: hsl(217 33% 17%);
+	--muted-foreground: hsl(215 20% 65%);
+	--accent: hsl(260 90% 74%);
+	--accent-foreground: hsl(222 47% 6%);
+	--destructive: hsl(0 63% 31%);
+	--destructive-foreground: hsl(210 40% 98%);
+	--border: hsl(217 33% 17%);
+	--input: hsl(217 33% 17%);
+	--ring: hsl(260 90% 74%);
+	--glass: hsl(222 47% 8%);
+	--glass-border: hsl(217 33% 20%);
+	--chart-1: hsl(260 90% 74%);
+	--chart-2: hsl(285 90% 66%);
+	--chart-3: hsl(262 73% 58%);
+	--chart-4: hsl(38 92% 50%);
+	--chart-5: hsl(270 67% 47%);
+	--success: hsl(160 84% 39%);
+	--success-foreground: hsl(0 0% 100%);
+	--warning: hsl(38 92% 50%);
+	--warning-foreground: hsl(0 0% 100%);
+}
+
+@theme inline {
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-glass: var(--glass);
+	--color-glass-border: var(--glass-border);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-destructive: var(--destructive);
+	--color-destructive-foreground: var(--destructive-foreground);
+	--color-border: var(--border);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
+	--color-chart-1: var(--chart-1);
+	--color-chart-2: var(--chart-2);
+	--color-chart-3: var(--chart-3);
+	--color-chart-4: var(--chart-4);
+	--color-chart-5: var(--chart-5);
+	--color-success: var(--success);
+	--color-success-foreground: var(--success-foreground);
+	--color-warning: var(--warning);
+	--color-warning-foreground: var(--warning-foreground);
+
+	--radius-lg: var(--radius);
+	--radius-md: calc(var(--radius) - 2px);
+	--radius-sm: calc(var(--radius) - 4px);
+	--radius-xl: calc(var(--radius) + 4px);
+	--radius-xs: calc(var(--radius) - 6px);
+
+	--font-display: "Geist Variable", "Geist", "SF Pro Display", system-ui,
+		sans-serif;
+	--font-sans: "Geist Variable", "Geist", "SF Pro Text", system-ui, sans-serif;
+	--font-mono: "JetBrains Mono Variable", "JetBrains Mono", monospace;
+
+	--animate-fade-in: fadeIn 0.5s ease-out;
+	--animate-slide-up: slideUp 0.5s ease-out;
+	--animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+
+	@keyframes fadeIn {
+		0% {
+			opacity: 0;
+		}
+		100% {
+			opacity: 1;
+		}
+	}
+	@keyframes slideUp {
+		0% {
+			opacity: 0;
+			transform: translateY(20px);
+		}
+		100% {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+}
+
+@layer base {
+	* {
+		@apply border-border outline-ring/50;
+	}
+	html,
+	body {
+		@apply bg-background text-foreground antialiased;
+		font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+	}
+	body {
+		@apply bg-background text-foreground font-sans;
+	}
+	::selection {
+		background: hsl(var(--primary) / 0.2);
+	}
+}
+
+html {
+	scroll-behavior: smooth;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -17,94 +166,9 @@ body {
 	}
 }
 
-html {
-	scroll-behavior: smooth;
-}
-
 @media (prefers-reduced-motion: reduce) {
 	html {
 		scroll-behavior: auto;
-	}
-}
-
-@layer base {
-	:root {
-		--background: 0 0% 100%;
-		--foreground: 222 47% 11%;
-		--card: 0 0% 100%;
-		--card-foreground: 222 47% 11%;
-		--popover: 0 0% 100%;
-		--popover-foreground: 222 47% 11%;
-		--primary: 262 83% 58%;
-		--primary-foreground: 0 0% 100%;
-		--secondary: 210 40% 96%;
-		--secondary-foreground: 222 47% 11%;
-		--muted: 210 40% 96%;
-		--muted-foreground: 215 16% 47%;
-		--accent: 262 83% 58%;
-		--accent-foreground: 0 0% 100%;
-		--destructive: 0 84% 60%;
-		--destructive-foreground: 0 0% 100%;
-		--border: 214 32% 91%;
-		--input: 214 32% 91%;
-		--ring: 262 83% 58%;
-		--radius: 0.75rem;
-		--glass: 0 0% 100%;
-		--glass-border: 214 32% 91%;
-		--chart-1: 262 83% 58%;
-		--chart-2: 285 90% 62%;
-		--chart-3: 262 73% 52%;
-		--chart-4: 38 92% 50%;
-		--chart-5: 270 67% 47%;
-		--success: 160 84% 39%;
-		--success-foreground: 0 0% 100%;
-		--warning: 38 92% 50%;
-		--warning-foreground: 0 0% 100%;
-	}
-
-	.dark {
-		--background: 222 47% 6%;
-		--foreground: 210 40% 98%;
-		--card: 222 47% 8%;
-		--card-foreground: 210 40% 98%;
-		--popover: 222 47% 8%;
-		--popover-foreground: 210 40% 98%;
-		--primary: 260 90% 74%;
-		--primary-foreground: 222 47% 6%;
-		--secondary: 217 33% 17%;
-		--secondary-foreground: 210 40% 98%;
-		--muted: 217 33% 17%;
-		--muted-foreground: 215 20% 65%;
-		--accent: 260 90% 74%;
-		--accent-foreground: 222 47% 6%;
-		--destructive: 0 63% 31%;
-		--destructive-foreground: 210 40% 98%;
-		--border: 217 33% 17%;
-		--input: 217 33% 17%;
-		--ring: 260 90% 74%;
-		--glass: 222 47% 8%;
-		--glass-border: 217 33% 20%;
-		--chart-1: 260 90% 74%;
-		--chart-2: 285 90% 66%;
-		--chart-3: 262 73% 58%;
-		--chart-4: 38 92% 50%;
-		--chart-5: 270 67% 47%;
-		--success: 160 84% 39%;
-		--success-foreground: 0 0% 100%;
-		--warning: 38 92% 50%;
-		--warning-foreground: 0 0% 100%;
-	}
-}
-
-@layer base {
-	* {
-		@apply border-border;
-	}
-	body {
-		@apply bg-background text-foreground font-sans;
-	}
-	::selection {
-		background: hsl(var(--primary) / 0.2);
 	}
 }
 
