@@ -26,6 +26,26 @@ const localeOptions = [
 ];
 const localeCodes = new Set(localeOptions.map((locale) => locale.code));
 
+function rememberLang(code: string) {
+	try {
+		document.cookie = `lang=${encodeURIComponent(code)}; path=/; max-age=31536000; samesite=lax`;
+	} catch {
+		// cookies unavailable (private mode); server falls back to Accept-Language
+	}
+}
+
+function getLangCookie(request: Request): string | null {
+	const cookie = request.headers.get("Cookie") || "";
+	const m = cookie.match(/(?:^|;\s*)lang=([^;]+)/);
+	if (!m) return null;
+	try {
+		const v = decodeURIComponent(m[1]);
+		return localeCodes.has(v) ? v : null;
+	} catch {
+		return null;
+	}
+}
+
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
 	if (context.cloudflare.env.PASSWORD) {
 		const { getSession } = sessionWrapper(context.cloudflare.env);
@@ -40,16 +60,21 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 	}
 	const lang = params.lang;
 	if (!lang) {
-		const headers = {
-			"accept-language": request.headers.get("accept-language") || "",
-		};
-		const languages = new Negotiator({ headers: headers }).languages();
-		const locales = ["en", "zh-CN", "es", "fr", "ja", "ko"];
-		const defaultLocale = "en";
-		const lang = match(languages, locales, defaultLocale);
-		if (lang !== defaultLocale) {
-			const { pathname } = new URL(request.url);
-			return redirect(`/${lang}${pathname}`);
+		// Explicit choice wins: if the user previously picked a language
+		// (cookie set on click), never bounce `/` back to a prefixed URL.
+		// Only first-time visitors (no cookie) get Accept-Language detection.
+		if (!getLangCookie(request)) {
+			const headers = {
+				"accept-language": request.headers.get("accept-language") || "",
+			};
+			const languages = new Negotiator({ headers: headers }).languages();
+			const locales = ["en", "zh-CN", "es", "fr", "ja", "ko"];
+			const defaultLocale = "en";
+			const lang = match(languages, locales, defaultLocale);
+			if (lang !== defaultLocale) {
+				const { pathname } = new URL(request.url);
+				return redirect(`/${lang}${pathname}`);
+			}
 		}
 	}
 	const locale = await getLocaleData(lang || "en");
@@ -171,7 +196,10 @@ function MobileLangMenu({
 								prefetch="intent"
 								role="menuitem"
 								title={option.title}
-								onClick={() => setOpen(false)}
+								onClick={() => {
+									rememberLang(option.code);
+									setOpen(false);
+								}}
 								className={cn(
 									"flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
 									isActive
@@ -243,6 +271,7 @@ export default function HomeLayout() {
 										prefetch="intent"
 										aria-current={isActive ? "page" : undefined}
 										title={locale.title}
+										onClick={() => rememberLang(locale.code)}
 										className={cn(
 											"px-2.5 py-1 text-xs font-medium rounded-md transition-all",
 											isActive
