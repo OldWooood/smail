@@ -28,9 +28,9 @@
 
 ## 技术栈
 
-- [Remix](https://remix.run/) + Vite,Tailwind CSS
-- [Cloudflare Workers](https://workers.cloudflare.com/) + Email Workers 收信
-- [D1](https://developers.cloudflare.com/d1/)(SQLite)+ [KV](https://developers.cloudflare.com/kv/),基于 [drizzle-orm](https://orm.drizzle.team/)
+- [React Router v7](https://react.dev/)（Framework Mode）+ Vite 7，Tailwind CSS v4
+- [Cloudflare Workers](https://workers.cloudflare.com/) + Email Workers 收信 + Static Assets
+- [D1](https://developers.cloudflare.com/d1/)(SQLite)+ [KV](https://developers.cloudflare.com/kv/)，基于 [drizzle-orm](https://orm.drizzle.team/)
 - [Cloudflare Turnstile](https://www.cloudflare.com/products/turnstile/)
 
 ## 快速开始
@@ -46,7 +46,7 @@
 
 - Cloudflare 账号
 - 已在 Cloudflare 托管并开启[电子邮件路由](https://developers.cloudflare.com/email-routing/)的域名
-- 在 Workers / Pages 中创建好的 KV 和 D1 数据库
+- 在 Workers 中创建好的 KV 和 D1 数据库
 
 ### 部署步骤
 
@@ -91,11 +91,11 @@ pnpm dev
 
 | 命令            | 说明                     |
 | --------------- | ------------------------ |
-| `pnpm dev`      | 启动 Remix 开发服务器    |
+| `pnpm dev`      | 启动 React Router 开发服务器（workerd） |
 | `pnpm build`    | 构建客户端、服务端与 Worker |
 | `pnpm deploy`   | 构建并部署到 Cloudflare  |
-| `pnpm lint`     | 运行 ESLint              |
-| `pnpm typecheck`| TypeScript 类型检查      |
+| `pnpm lint`     | 运行 Biome 检查          |
+| `pnpm typecheck`| React Router typegen + TypeScript 类型检查 |
 | `pnpm format`   | 使用 Biome 格式化代码    |
 
 ## 鸣谢

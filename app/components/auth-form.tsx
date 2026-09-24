@@ -1,7 +1,7 @@
 import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
-import { Form, type useNavigation } from "@remix-run/react";
 import { AtSign, Check, Loader2, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Form, type useNavigation } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";

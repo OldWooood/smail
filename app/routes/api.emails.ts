@@ -1,7 +1,7 @@
 import { match } from "@formatjs/intl-localematcher";
-import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
-import { json } from "@remix-run/cloudflare";
 import Negotiator from "negotiator";
+import type { LoaderFunctionArgs } from "react-router";
+import { data } from "react-router";
 import { d1Wrapper } from "~/.server/db";
 import { listEmails } from "~/.server/emails";
 import { mailboxStateKey, quoteEtag } from "~/.server/mailbox";
@@ -43,7 +43,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 	const email = session.data.email;
 
 	if (!email) {
-		return json(
+		return data(
 			{ emails: [] },
 			{ headers: { "Cache-Control": "private, no-store", Vary: "Cookie" } },
 		);
@@ -67,7 +67,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 	const db = d1Wrapper(context.cloudflare.env.DB);
 	const emails = await listEmails(db, email, lang);
 
-	return json(
+	return data(
 		{ emails },
 		{
 			headers: {

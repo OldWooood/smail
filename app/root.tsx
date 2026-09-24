@@ -1,4 +1,4 @@
-import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/cloudflare";
+import type { LinksFunction, LoaderFunctionArgs } from "react-router";
 import {
 	Links,
 	Meta,
@@ -6,7 +6,7 @@ import {
 	Scripts,
 	ScrollRestoration,
 	useLoaderData,
-} from "@remix-run/react";
+} from "react-router";
 import "~/tailwind.css";
 
 export const links: LinksFunction = () => [

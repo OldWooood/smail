@@ -1,6 +1,6 @@
-import { NavLink } from "@remix-run/react";
 import { Bell, Inbox, Mail, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { NavLink } from "react-router";
 import { Button } from "~/components/ui/button";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import { cn } from "~/lib/utils";

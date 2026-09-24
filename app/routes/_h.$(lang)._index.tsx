@@ -1,22 +1,22 @@
+import randomName from "@scaleway/random-name";
+import { eq } from "drizzle-orm";
+import { Clock4, Loader2, Trash2 } from "lucide-react";
+import { customAlphabet } from "nanoid";
+import { useEffect, useRef, useState } from "react";
 import type {
 	ActionFunctionArgs,
 	LinksFunction,
 	LoaderFunctionArgs,
-} from "@remix-run/cloudflare";
-import { json } from "@remix-run/cloudflare";
+} from "react-router";
 import {
+	data,
 	Form,
 	type MetaFunction,
 	redirect,
 	useActionData,
 	useLoaderData,
 	useNavigation,
-} from "@remix-run/react";
-import randomName from "@scaleway/random-name";
-import { eq } from "drizzle-orm";
-import { Clock4, Loader2, Trash2 } from "lucide-react";
-import { customAlphabet } from "nanoid";
-import { useEffect, useRef, useState } from "react";
+} from "react-router";
 import { d1Wrapper, schema } from "~/.server/db";
 import { listEmails } from "~/.server/emails";
 import {
@@ -149,7 +149,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 	switch (request.method) {
 		case "POST": {
 			if (session.data.email) {
-				return json<ActionData>({ error: "already_assigned" }, { status: 400 });
+				return data<ActionData>({ error: "already_assigned" }, { status: 400 });
 			}
 			const clientIp = getClientIp(request);
 			const rate = await checkClaimRateLimit(
@@ -157,7 +157,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 				clientIp,
 			);
 			if (!rate.allowed) {
-				return json<ActionData>(
+				return data<ActionData>(
 					{ error: "rate_limited" },
 					{ status: 429, headers: { "Retry-After": "3600" } },
 				);
@@ -170,7 +170,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 			const turnstileSecret = context.cloudflare.env.TURNSTILE_SECRET_KEY;
 			if (turnstileSecret) {
 				if (!turnstileToken) {
-					return json<ActionData>(
+					return data<ActionData>(
 						{ error: "verify_required", localPart: rawLocalPart },
 						{ status: 400 },
 					);
@@ -184,7 +184,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 					remoteIp,
 				);
 				if (!ok) {
-					return json<ActionData>(
+					return data<ActionData>(
 						{ error: "verify_failed", localPart: rawLocalPart },
 						{ status: 403 },
 					);
@@ -192,7 +192,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 			}
 			const normalizedLocal = normalizeLocalPart(rawLocalPart);
 			if (rawLocalPart && !normalizedLocal) {
-				return json<ActionData>(
+				return data<ActionData>(
 					{ error: "invalid_local", localPart: rawLocalPart },
 					{ status: 400 },
 				);
@@ -202,7 +202,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 			const email = `${localPart}@${domain}`;
 			const token = await claimMailbox(context.cloudflare.env.KV, email);
 			if (!token) {
-				return json<ActionData>(
+				return data<ActionData>(
 					{ error: "email_taken", localPart: rawLocalPart },
 					{ status: 409 },
 				);
@@ -424,36 +424,34 @@ export default function Index() {
 					</div>
 				</section>
 			) : (
-				<>
-					<HeroSection sampleAddress={sampleAddress} locale={locale}>
-						<div className="glass rounded-2xl p-6">
-							<AuthForm
-								turnstileSiteKey={turnstileSiteKey}
-								lang={lang}
-								locale={locale}
-								domain={domain}
-								navigation={navigation}
-								setToken={setToken}
-								token={token}
-								defaultLocalPart={actionData?.localPart}
-								emailError={
-									actionData?.error === "email_taken"
-										? locale.custom_email.error_taken
-										: actionData?.error === "invalid_local"
-											? locale.custom_email.error_invalid
-											: undefined
-								}
-								verifyError={
-									actionData?.error === "verify_required" ||
-									actionData?.error === "verify_failed" ||
-									actionData?.error === "rate_limited"
-										? locale.form.verify_retry
+				<HeroSection sampleAddress={sampleAddress} locale={locale}>
+					<div className="glass rounded-2xl p-6">
+						<AuthForm
+							turnstileSiteKey={turnstileSiteKey}
+							lang={lang}
+							locale={locale}
+							domain={domain}
+							navigation={navigation}
+							setToken={setToken}
+							token={token}
+							defaultLocalPart={actionData?.localPart}
+							emailError={
+								actionData?.error === "email_taken"
+									? locale.custom_email.error_taken
+									: actionData?.error === "invalid_local"
+										? locale.custom_email.error_invalid
 										: undefined
-								}
-							/>
-						</div>
-					</HeroSection>
-				</>
+							}
+							verifyError={
+								actionData?.error === "verify_required" ||
+								actionData?.error === "verify_failed" ||
+								actionData?.error === "rate_limited"
+									? locale.form.verify_retry
+									: undefined
+							}
+						/>
+					</div>
+				</HeroSection>
 			)}
 		</>
 	);

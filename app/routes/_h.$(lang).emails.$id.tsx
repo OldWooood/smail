@@ -1,13 +1,13 @@
-import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
-import { json } from "@remix-run/cloudflare";
+import { ArrowLeft, Clock, Mail, User } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import type { LoaderFunctionArgs } from "react-router";
 import {
+	data,
 	isRouteErrorResponse,
 	Link,
 	useLoaderData,
 	useRouteError,
-} from "@remix-run/react";
-import { ArrowLeft, Clock, Mail, User } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+} from "react-router";
 import { d1Wrapper } from "~/.server/db";
 import { sessionWrapper } from "~/.server/session";
 import { Button } from "~/components/ui/button";
@@ -49,7 +49,7 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 		senderAddress,
 	};
 	const locale = await getLocaleData(lang);
-	return json(
+	return data(
 		{ locale, email: newEmail },
 		{ headers: { "Cache-Control": "private, max-age=60" } },
 	);

@@ -5,12 +5,14 @@
 		"**/.server/**/*.ts",
 		"**/.server/**/*.tsx",
 		"**/.client/**/*.ts",
-		"**/.client/**/*.tsx"
+		"**/.client/**/*.tsx",
+		".react-router/types/**/*"
 	],
-	"exclude": ["node_modules", "build", ".wrangler", ".react-router"],
+	"exclude": ["node_modules", "build", ".wrangler"],
 	"compilerOptions": {
 		"lib": ["DOM", "DOM.Iterable", "ES2022"],
-		"types": ["@remix-run/cloudflare", "vite/client"],
+		"types": ["vite/client", "node"],
+		"rootDirs": [".", "./.react-router/types"],
 		"isolatedModules": true,
 		"esModuleInterop": true,
 		"jsx": "react-jsx",

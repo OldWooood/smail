@@ -1,5 +1,8 @@
 import { match } from "@formatjs/intl-localematcher";
-import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { Check, ChevronDown, Globe, Moon, Sun } from "lucide-react";
+import Negotiator from "negotiator";
+import { useEffect, useRef, useState } from "react";
+import type { LoaderFunctionArgs } from "react-router";
 import {
 	Link,
 	Outlet,
@@ -7,10 +10,7 @@ import {
 	useLoaderData,
 	useLocation,
 	useParams,
-} from "@remix-run/react";
-import { Check, ChevronDown, Globe, Moon, Sun } from "lucide-react";
-import Negotiator from "negotiator";
-import { useEffect, useRef, useState } from "react";
+} from "react-router";
 import { sessionWrapper } from "~/.server/session";
 import { GitHubIcon } from "~/icons/github";
 import { cn } from "~/lib/utils";

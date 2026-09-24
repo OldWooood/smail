@@ -10,6 +10,7 @@
 		"includes": [
 			"**",
 			"!**/.wrangler",
+			"!**/.react-router",
 			"!**/build",
 			"!**/app/emails.json",
 			"!**/worker-configuration.d.ts"
@@ -38,6 +39,11 @@
 	"javascript": {
 		"formatter": {
 			"quoteStyle": "double"
+		}
+	},
+	"css": {
+		"parser": {
+			"tailwindDirectives": true
 		}
 	}
 }

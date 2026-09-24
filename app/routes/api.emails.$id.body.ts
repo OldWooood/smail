@@ -1,4 +1,4 @@
-import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
+import type { LoaderFunctionArgs } from "react-router";
 import { d1Wrapper } from "~/.server/db";
 import { sessionWrapper } from "~/.server/session";
 

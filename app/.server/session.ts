@@ -1,7 +1,4 @@
-import {
-	createCookie,
-	createCookieSessionStorage,
-} from "@remix-run/cloudflare";
+import { createCookie, createCookieSessionStorage } from "react-router";
 
 type SessionData = {
 	email?: string;

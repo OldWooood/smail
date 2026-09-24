@@ -30,8 +30,8 @@ Cloudflare Workers in minutes.
 
 ## Tech Stack
 
-- [Remix](https://remix.run/) + Vite, Tailwind CSS
-- [Cloudflare Workers](https://workers.cloudflare.com/) + Email Workers
+- [React Router v7](https://react.dev/) (Framework Mode) + Vite 7, Tailwind CSS v4
+- [Cloudflare Workers](https://workers.cloudflare.com/) + Email Workers + Static Assets
 - [D1](https://developers.cloudflare.com/d1/) (SQLite) + [KV](https://developers.cloudflare.com/kv/) via [drizzle-orm](https://orm.drizzle.team/)
 - [Cloudflare Turnstile](https://www.cloudflare.com/products/turnstile/)
 
@@ -48,7 +48,7 @@ Cloudflare Workers in minutes.
 
 - A Cloudflare account
 - A domain on Cloudflare with [Email Routing](https://developers.cloudflare.com/email-routing/) enabled
-- KV and D1 databases created in Workers / Pages
+- KV and D1 databases created in Workers
 
 ### Deploy
 
@@ -96,11 +96,11 @@ pnpm dev
 
 | Script           | Description                          |
 | ---------------- | ------------------------------------ |
-| `pnpm dev`       | Start the Remix dev server           |
+| `pnpm dev`       | Start the React Router dev server (workerd) |
 | `pnpm build`     | Build client, server and worker      |
 | `pnpm deploy`    | Build and deploy to Cloudflare       |
-| `pnpm lint`      | Run ESLint                           |
-| `pnpm typecheck` | Run TypeScript checks                |
+| `pnpm lint`      | Run Biome check                      |
+| `pnpm typecheck` | Run React Router typegen + TypeScript checks |
 | `pnpm format`    | Format with Biome                    |
 
 ## Credits

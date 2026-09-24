@@ -1,9 +1,3 @@
-import type { PlatformProxy } from "wrangler";
-
-type Cloudflare = Omit<PlatformProxy<Env>, "dispose">;
-
-declare module "@remix-run/cloudflare" {
-	interface AppLoadContext {
-		cloudflare: Cloudflare;
-	}
-}
+// AppLoadContext augmentation lives in app/worker.ts (single source).
+// Kept as a re-export shim so existing `~/load-context` imports keep working.
+export {};
