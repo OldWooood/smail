@@ -11,7 +11,7 @@ type SessionData = {
 	mailboxToken?: string;
 };
 
-const DEFAULT_COOKIE_SECRET = "defalt_secret";
+const DEFAULT_COOKIE_SECRET = "default_secret_change_me";
 
 // Cache storage per secret instead of a global singleton so secret rotation
 // (or preview vs production bindings sharing an isolate) can't pin the first
@@ -36,8 +36,10 @@ export function sessionWrapper(env: Env) {
 export function cookieWrapper(env: Env) {
 	return createCookie("__session", {
 		secrets: [env.COOKIE_SECRET || DEFAULT_COOKIE_SECRET],
-		sameSite: true,
+		sameSite: "lax",
 		httpOnly: true,
+		secure: true,
+		path: "/",
 		maxAge: 60 * 60 * 24 * 30,
 	});
 }

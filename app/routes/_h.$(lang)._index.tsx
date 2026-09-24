@@ -25,6 +25,7 @@ import {
 	mailboxStateKey,
 	nextMailboxStateToken,
 } from "~/.server/mailbox";
+import { checkClaimRateLimit, getClientIp } from "~/.server/ratelimit";
 import { sessionWrapper } from "~/.server/session";
 import { verifyTurnstile } from "~/.server/turnstile";
 import { AuthForm } from "~/components/auth-form";
@@ -49,7 +50,8 @@ type ActionData = {
 		| "email_taken"
 		| "already_assigned"
 		| "verify_required"
-		| "verify_failed";
+		| "verify_failed"
+		| "rate_limited";
 	localPart?: string;
 };
 
@@ -148,6 +150,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
 		case "POST": {
 			if (session.data.email) {
 				return json<ActionData>({ error: "already_assigned" }, { status: 400 });
+			}
+			const clientIp = getClientIp(request);
+			const rate = await checkClaimRateLimit(context.cloudflare.env.KV, clientIp);
+			if (!rate.allowed) {
+				return json<ActionData>(
+					{ error: "rate_limited" },
+					{ status: 429, headers: { "Retry-After": "3600" } },
+				);
 			}
 			const formData = await request.formData();
 			const rawLocalPart = String(formData.get("localPart") || "");
@@ -436,7 +446,8 @@ export default function Index() {
 								}
 								verifyError={
 									actionData?.error === "verify_required" ||
-									actionData?.error === "verify_failed"
+									actionData?.error === "verify_failed" ||
+									actionData?.error === "rate_limited"
 										? locale.form.verify_retry
 										: undefined
 								}

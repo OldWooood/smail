@@ -83,7 +83,7 @@ async function storeEmail(message: ForwardableEmailMessage, env: Env) {
 		messageFrom: message.from,
 		messageTo: to,
 		headers: [],
-		from: mail.from,
+		from: mail.from ?? { address: "", name: "" },
 		sender: mail.sender,
 		subject: mail.subject?.slice(0, 500),
 		html: truncate(mail.html, MAX_HTML_CHARS),
