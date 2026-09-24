@@ -77,7 +77,11 @@ export function CopyButton({
 			)}
 			{children}
 			<span className="sr-only">
-				{status === "copied" ? "copied" : status === "failed" ? "copy failed" : ""}
+				{status === "copied"
+					? "copied"
+					: status === "failed"
+						? "copy failed"
+						: ""}
 			</span>
 		</Button>
 	);

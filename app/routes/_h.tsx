@@ -14,7 +14,7 @@ import { useEffect, useRef, useState } from "react";
 import { sessionWrapper } from "~/.server/session";
 import { GitHubIcon } from "~/icons/github";
 import { cn } from "~/lib/utils";
-import { type Locale, getLocaleData } from "~/locales/locale";
+import { getLocaleData, type Locale } from "~/locales/locale";
 
 const localeOptions = [
 	{ code: "en", label: "EN", title: "English" },

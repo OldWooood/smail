@@ -7,8 +7,20 @@ export default {
 	theme: {
 		extend: {
 			fontFamily: {
-				display: ['"Geist Variable"', '"Geist"', '"SF Pro Display"', "system-ui", "sans-serif"],
-				sans: ['"Geist Variable"', '"Geist"', '"SF Pro Text"', "system-ui", "sans-serif"],
+				display: [
+					'"Geist Variable"',
+					'"Geist"',
+					'"SF Pro Display"',
+					"system-ui",
+					"sans-serif",
+				],
+				sans: [
+					'"Geist Variable"',
+					'"Geist"',
+					'"SF Pro Text"',
+					"system-ui",
+					"sans-serif",
+				],
 				mono: ['"JetBrains Mono Variable"', '"JetBrains Mono"', "monospace"],
 			},
 			borderRadius: {

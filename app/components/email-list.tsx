@@ -88,7 +88,9 @@ export function EmailList({
 	const [notificationState, setNotificationState] =
 		useState<NotificationState>("unsupported");
 
-	const previousIdsRef = useRef<Set<string>>(new Set(initialEmails.map((e) => e.id)));
+	const previousIdsRef = useRef<Set<string>>(
+		new Set(initialEmails.map((e) => e.id)),
+	);
 	const abortControllerRef = useRef<AbortController | null>(null);
 	const etagRef = useRef<string | null>(null);
 	const isVisibleRef = useRef(true);
@@ -97,60 +99,63 @@ export function EmailList({
 
 	const storageKey = seenKey(mailbox);
 
-	const fetchEmails = useCallback(
-		async (opts?: { silent?: boolean }) => {
-			const silent = opts?.silent ?? false;
-			if (typeof navigator !== "undefined" && !navigator.onLine) return;
-			if (abortControllerRef.current) {
-				abortControllerRef.current.abort();
+	const fetchEmails = useCallback(async (opts?: { silent?: boolean }) => {
+		const silent = opts?.silent ?? false;
+		if (typeof navigator !== "undefined" && !navigator.onLine) return;
+		if (abortControllerRef.current) {
+			abortControllerRef.current.abort();
+		}
+
+		abortControllerRef.current = new AbortController();
+		if (!silent) {
+			setIsManualRefreshing(true);
+			setError(null);
+		}
+
+		try {
+			const response = await fetch("/api/emails", {
+				signal: abortControllerRef.current.signal,
+				headers: etagRef.current
+					? { "If-None-Match": etagRef.current }
+					: undefined,
+			});
+
+			if (response.status === 304) {
+				return;
 			}
 
-			abortControllerRef.current = new AbortController();
-			if (!silent) {
-				setIsManualRefreshing(true);
-				setError(null);
+			if (!response.ok) {
+				throw new Error("Failed to fetch emails");
 			}
 
-			try {
-				const response = await fetch("/api/emails", {
-					signal: abortControllerRef.current.signal,
-					headers: etagRef.current
-						? { "If-None-Match": etagRef.current }
-						: undefined,
-				});
-
-				if (response.status === 304) {
-					return;
-				}
-
-				if (!response.ok) {
-					throw new Error("Failed to fetch emails");
-				}
-
-				const newEtag = response.headers.get("ETag");
-				if (newEtag) {
-					etagRef.current = newEtag;
-				}
-
-				const data = (await response.json()) as { emails: Email[] };
-				setEmails((prev) =>
-					emailsChanged(prev, data.emails) ? data.emails : prev,
-				);
-				if (!silent) setError(null);
-			} catch (err) {
-				if (err instanceof Error && err.name !== "AbortError") {
-					if (!silent) setError(err.message);
-					console.error("Failed to fetch emails:", err);
-				}
-			} finally {
-				if (!silent) setIsManualRefreshing(false);
+			const newEtag = response.headers.get("ETag");
+			if (newEtag) {
+				etagRef.current = newEtag;
 			}
-		},
-		[],
+
+			const data = (await response.json()) as { emails: Email[] };
+			setEmails((prev) =>
+				emailsChanged(prev, data.emails) ? data.emails : prev,
+			);
+			if (!silent) setError(null);
+		} catch (err) {
+			if (err instanceof Error && err.name !== "AbortError") {
+				if (!silent) setError(err.message);
+				console.error("Failed to fetch emails:", err);
+			}
+		} finally {
+			if (!silent) setIsManualRefreshing(false);
+		}
+	}, []);
+
+	const fetchSilent = useCallback(
+		() => fetchEmails({ silent: true }),
+		[fetchEmails],
 	);
-
-	const fetchSilent = useCallback(() => fetchEmails({ silent: true }), [fetchEmails]);
-	const fetchManual = useCallback(() => fetchEmails({ silent: false }), [fetchEmails]);
+	const fetchManual = useCallback(
+		() => fetchEmails({ silent: false }),
+		[fetchEmails],
+	);
 
 	// (Re)initialize per mailbox so seen-state, ETag and baseline never leak
 	// across addresses.
@@ -232,7 +237,9 @@ export function EmailList({
 		}
 	}, [emails, locale.list.notification_title, locale.list.notification_body]);
 
-	const unreadCount = mounted ? emails.filter((e) => !seenIds.has(e.id)).length : 0;
+	const unreadCount = mounted
+		? emails.filter((e) => !seenIds.has(e.id)).length
+		: 0;
 
 	useEffect(() => {
 		if (typeof document === "undefined") return;

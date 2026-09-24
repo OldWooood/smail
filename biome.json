@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/1.9.2/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.5.14/schema.json",
 	"vcs": {
 		"enabled": false,
 		"clientKind": "git",
@@ -7,19 +7,23 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"ignore": [".wrangler", "build", "app/emails.json"]
+		"includes": [
+			"**",
+			"!**/.wrangler",
+			"!**/build",
+			"!**/app/emails.json",
+			"!**/worker-configuration.d.ts"
+		]
 	},
 	"formatter": {
 		"enabled": true,
 		"indentStyle": "tab"
 	},
-	"organizeImports": {
-		"enabled": true
-	},
+	"assist": { "actions": { "source": { "organizeImports": "on" } } },
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true,
+			"preset": "recommended",
 			"security": {
 				"noDangerouslySetInnerHtml": "off"
 			},

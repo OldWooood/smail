@@ -34,7 +34,7 @@ import { EmailList } from "~/components/email-list";
 import { HeroSection } from "~/components/marketing/hero-section";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
-import { type Locale, getLocaleData } from "~/locales/locale";
+import { getLocaleData, type Locale } from "~/locales/locale";
 
 const MAILBOX_TTL_SECONDS = 60 * 60 * 24;
 
@@ -152,7 +152,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
 				return json<ActionData>({ error: "already_assigned" }, { status: 400 });
 			}
 			const clientIp = getClientIp(request);
-			const rate = await checkClaimRateLimit(context.cloudflare.env.KV, clientIp);
+			const rate = await checkClaimRateLimit(
+				context.cloudflare.env.KV,
+				clientIp,
+			);
 			if (!rate.allowed) {
 				return json<ActionData>(
 					{ error: "rate_limited" },
@@ -335,11 +338,7 @@ function MailboxCard({
 					>
 						<span className="hidden md:inline">{locale.mailbox.copy}</span>
 					</CopyButton>
-					<Form
-						method="DELETE"
-						viewTransition
-						ref={deleteFormRef}
-					>
+					<Form method="DELETE" viewTransition ref={deleteFormRef}>
 						<Button
 							variant="destructive"
 							size="sm"

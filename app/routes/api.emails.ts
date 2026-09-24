@@ -18,12 +18,17 @@ function resolveLang(request: Request): string {
 	const cookie = request.headers.get("Cookie") || "";
 	const cookieMatch = cookie.match(/(?:^|;\s*)lang=([^;]+)/);
 	const cookieLang = cookieMatch ? decodeURIComponent(cookieMatch[1]) : null;
-	if (cookieLang && (SUPPORTED_LANGS as readonly string[]).includes(cookieLang)) {
+	if (
+		cookieLang &&
+		(SUPPORTED_LANGS as readonly string[]).includes(cookieLang)
+	) {
 		return cookieLang;
 	}
 	try {
 		const languages = new Negotiator({
-			headers: { "accept-language": request.headers.get("accept-language") || "" },
+			headers: {
+				"accept-language": request.headers.get("accept-language") || "",
+			},
 		}).languages();
 		return match(languages, [...SUPPORTED_LANGS], "en");
 	} catch {
@@ -40,7 +45,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 	if (!email) {
 		return json(
 			{ emails: [] },
-			{ headers: { "Cache-Control": "private, no-store", "Vary": "Cookie" } },
+			{ headers: { "Cache-Control": "private, no-store", Vary: "Cookie" } },
 		);
 	}
 

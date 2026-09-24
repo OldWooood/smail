@@ -80,11 +80,15 @@ export function HeroSection({
 						>
 							<div
 								className="light-pool light-pool-a absolute right-0 top-0 h-72 w-72 rounded-full bg-primary/25 blur-3xl"
-								style={glowVisible ? undefined : { animationPlayState: "paused" }}
+								style={
+									glowVisible ? undefined : { animationPlayState: "paused" }
+								}
 							/>
 							<div
 								className="light-pool light-pool-b absolute bottom-0 left-10 h-56 w-56 rounded-full bg-chart-3/15 blur-3xl"
-								style={glowVisible ? undefined : { animationPlayState: "paused" }}
+								style={
+									glowVisible ? undefined : { animationPlayState: "paused" }
+								}
 							/>
 						</div>
 						<div className="animate-scale-in relative">{children}</div>

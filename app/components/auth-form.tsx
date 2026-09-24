@@ -148,7 +148,9 @@ export function AuthForm({
 						{locale.custom_email.hint}
 					</p>
 					{emailError && (
-						<p role="alert" className="text-xs text-destructive font-medium">{emailError}</p>
+						<p role="alert" className="text-xs text-destructive font-medium">
+							{emailError}
+						</p>
 					)}
 					{serverVerifyError && (
 						<p role="alert" className="text-xs text-destructive font-medium">

@@ -1,6 +1,11 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
-import { Link, isRouteErrorResponse, useLoaderData, useRouteError } from "@remix-run/react";
+import {
+	isRouteErrorResponse,
+	Link,
+	useLoaderData,
+	useRouteError,
+} from "@remix-run/react";
 import { ArrowLeft, Clock, Mail, User } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { d1Wrapper } from "~/.server/db";
@@ -71,7 +76,8 @@ function useDarkMode() {
 export function ErrorBoundary() {
 	const error = useRouteError();
 	const status = isRouteErrorResponse(error) ? error.status : 500;
-	const title = status === 401 ? "Unauthorized" : status === 404 ? "Not found" : "Error";
+	const title =
+		status === 401 ? "Unauthorized" : status === 404 ? "Not found" : "Error";
 	const message =
 		status === 401
 			? "Your session expired. Please create a new address."
