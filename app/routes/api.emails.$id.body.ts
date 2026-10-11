@@ -7,7 +7,8 @@ function escapeHtml(text: string) {
 		.replace(/&/g, "&amp;")
 		.replace(/</g, "&lt;")
 		.replace(/>/g, "&gt;")
-		.replace(/"/g, "&quot;");
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#39;");
 }
 
 // Serves the email body as a standalone document so the detail page shell
@@ -58,8 +59,14 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 			"Cache-Control": "private, max-age=300",
 			ETag: etag,
 			"X-Content-Type-Options": "nosniff",
-			// Defense in depth alongside the iframe `sandbox` attribute.
-			"Content-Security-Policy": "sandbox allow-popups",
+			"Referrer-Policy": "no-referrer",
+			// `sandbox` (no allow-scripts/allow-same-origin) neuters scripts and
+			// DOM access; `frame-ancestors 'self'` ensures only our own
+			// detail page can embed this. External stylesheets are blocked
+			// (inline <style> still works); remote images stay allowed so
+			// normal emails render.
+			"Content-Security-Policy":
+				"sandbox allow-popups; default-src 'none'; style-src 'unsafe-inline' http: https:; img-src http: https: data: cid: blob:; font-src data: http: https:; frame-ancestors 'self'; form-action 'none'; base-uri 'none'",
 		},
 	});
 }

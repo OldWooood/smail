@@ -384,6 +384,35 @@ html {
 		}
 	}
 
+	/* Same cadence as the old Motion config: 6s run + 2.5s repeatDelay, so the
+	   full cycle is 8.5s and the chip rests (invisible) between iterations. */
+	.animate-arrival-chip {
+		animation: arrivalChip 8.5s ease-out infinite;
+	}
+
+	@keyframes arrivalChip {
+		0% {
+			opacity: 0;
+			transform: translateY(10px);
+		}
+		8.5% {
+			opacity: 1;
+			transform: translateY(0);
+		}
+		60% {
+			opacity: 1;
+			transform: translateY(0);
+		}
+		70.6% {
+			opacity: 0;
+			transform: translateY(-6px);
+		}
+		100% {
+			opacity: 0;
+			transform: translateY(-6px);
+		}
+	}
+
 	::view-transition-old(root) {
 		animation: vtOut 0.18s ease-out forwards;
 	}
@@ -442,6 +471,7 @@ html {
 		.animate-fade-in,
 		.animate-slide-up,
 		.animate-marquee,
+		.animate-arrival-chip,
 		.light-pool-a,
 		.light-pool-b {
 			animation: none;

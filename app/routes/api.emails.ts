@@ -1,40 +1,10 @@
-import { match } from "@formatjs/intl-localematcher";
-import Negotiator from "negotiator";
 import type { LoaderFunctionArgs } from "react-router";
 import { data } from "react-router";
 import { d1Wrapper } from "~/.server/db";
 import { listEmails } from "~/.server/emails";
 import { mailboxStateKey, quoteEtag } from "~/.server/mailbox";
 import { sessionWrapper } from "~/.server/session";
-
-const SUPPORTED_LANGS = ["en", "zh-CN", "es", "fr", "ja", "ko"] as const;
-
-function resolveLang(request: Request): string {
-	const url = new URL(request.url);
-	const queryLang = url.searchParams.get("lang");
-	if (queryLang && (SUPPORTED_LANGS as readonly string[]).includes(queryLang)) {
-		return queryLang;
-	}
-	const cookie = request.headers.get("Cookie") || "";
-	const cookieMatch = cookie.match(/(?:^|;\s*)lang=([^;]+)/);
-	const cookieLang = cookieMatch ? decodeURIComponent(cookieMatch[1]) : null;
-	if (
-		cookieLang &&
-		(SUPPORTED_LANGS as readonly string[]).includes(cookieLang)
-	) {
-		return cookieLang;
-	}
-	try {
-		const languages = new Negotiator({
-			headers: {
-				"accept-language": request.headers.get("accept-language") || "",
-			},
-		}).languages();
-		return match(languages, [...SUPPORTED_LANGS], "en");
-	} catch {
-		return "en";
-	}
-}
+import { resolveLang } from "~/lib/lang";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
 	const { getSession } = sessionWrapper(context.cloudflare.env);

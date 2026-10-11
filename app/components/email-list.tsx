@@ -1,5 +1,5 @@
 import { Bell, Inbox, Mail, RefreshCw } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { NavLink } from "react-router";
 import { Button } from "~/components/ui/button";
 import { ScrollArea } from "~/components/ui/scroll-area";
@@ -73,6 +73,71 @@ function emailsChanged(a: Email[], b: Email[]) {
 	if (a.length !== b.length) return true;
 	return a.some((email, i) => email.id !== b[i].id);
 }
+
+const EmailListItem = memo(function EmailListItem({
+	email,
+	isUnread,
+	onSelect,
+	detailHref,
+	locale,
+}: {
+	email: Email;
+	isUnread: boolean;
+	/** Stable reference (useCallback) so memo's shallow compare can bail out. */
+	onSelect: (id: string) => void;
+	detailHref: (id: string) => string;
+	locale: Locale;
+}) {
+	return (
+		<NavLink
+			prefetch="render"
+			viewTransition
+			to={detailHref(email.id)}
+			onClick={() => onSelect(email.id)}
+			className={cn(
+				"group relative flex items-center gap-3 px-4 py-3.5 transition-all duration-200",
+				"hover:bg-muted/40",
+				isUnread && "animate-slide-up",
+			)}
+		>
+			<span
+				aria-hidden
+				className={cn(
+					"flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold uppercase",
+					avatarStyle(email.senderLabel || email.subject || email.id),
+				)}
+			>
+				{avatarLabel(email)}
+			</span>
+			<div className="min-w-0 flex-1">
+				<p
+					className={cn(
+						"truncate text-sm text-foreground",
+						isUnread ? "font-semibold" : "font-medium",
+					)}
+				>
+					{email.subject || locale.list.no_subject}
+				</p>
+				{email.senderLabel && (
+					<p className="mt-0.5 truncate text-xs text-muted-foreground">
+						{email.senderLabel}
+					</p>
+				)}
+			</div>
+			<span className="ml-2 flex shrink-0 flex-col items-end gap-1.5">
+				<span className="whitespace-nowrap font-mono text-xs text-muted-foreground">
+					{email.createdAt}
+				</span>
+				<span
+					className={cn(
+						"h-1.5 w-1.5 rounded-full transition-opacity",
+						isUnread ? "bg-primary opacity-100" : "opacity-0",
+					)}
+				/>
+			</span>
+		</NavLink>
+	);
+});
 
 export function EmailList({
 	initialEmails,
@@ -355,70 +420,16 @@ export function EmailList({
 						</div>
 					) : (
 						<div className="divide-y divide-border/50">
-							{emails.map((email) => {
-								const isUnread = mounted && !seenIds.has(email.id);
-								return (
-									<NavLink
-										prefetch="render"
-										viewTransition
-										to={detailHref(email.id)}
-										key={email.id}
-										onClick={() => markSeen(email.id)}
-										className={({ isActive }) =>
-											cn(
-												"group relative flex items-center gap-3 px-4 py-3.5 transition-all duration-200",
-												"hover:bg-muted/40",
-												isActive && "bg-primary/[0.07]",
-												isUnread && "animate-slide-up",
-											)
-										}
-									>
-										{({ isActive }) => (
-											<>
-												<span
-													aria-hidden
-													className={cn(
-														"flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold uppercase",
-														avatarStyle(
-															email.senderLabel || email.subject || email.id,
-														),
-													)}
-												>
-													{avatarLabel(email)}
-												</span>
-												<div className="min-w-0 flex-1">
-													<p
-														className={cn(
-															"truncate text-sm text-foreground",
-															isUnread || isActive
-																? "font-semibold"
-																: "font-medium",
-														)}
-													>
-														{email.subject || locale.list.no_subject}
-													</p>
-													{email.senderLabel && (
-														<p className="mt-0.5 truncate text-xs text-muted-foreground">
-															{email.senderLabel}
-														</p>
-													)}
-												</div>
-												<span className="ml-2 flex shrink-0 flex-col items-end gap-1.5">
-													<span className="whitespace-nowrap font-mono text-xs text-muted-foreground">
-														{email.createdAt}
-													</span>
-													<span
-														className={cn(
-															"h-1.5 w-1.5 rounded-full transition-opacity",
-															isUnread ? "bg-primary opacity-100" : "opacity-0",
-														)}
-													/>
-												</span>
-											</>
-										)}
-									</NavLink>
-								);
-							})}
+							{emails.map((email) => (
+								<EmailListItem
+									key={email.id}
+									email={email}
+									isUnread={mounted && !seenIds.has(email.id)}
+									onSelect={markSeen}
+									detailHref={detailHref}
+									locale={locale}
+								/>
+							))}
 						</div>
 					)}
 				</ScrollArea>

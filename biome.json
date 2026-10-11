@@ -27,12 +27,6 @@
 			"preset": "recommended",
 			"security": {
 				"noDangerouslySetInnerHtml": "off"
-			},
-			"suspicious": {
-				"noArrayIndexKey": "off"
-			},
-			"correctness": {
-				"useJsxKeyInIterable": "off"
 			}
 		}
 	},

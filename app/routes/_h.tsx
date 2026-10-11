@@ -1,6 +1,4 @@
-import { match } from "@formatjs/intl-localematcher";
 import { Check, ChevronDown, Globe, Moon, Sun } from "lucide-react";
-import Negotiator from "negotiator";
 import { useEffect, useRef, useState } from "react";
 import type { LoaderFunctionArgs } from "react-router";
 import {
@@ -13,36 +11,37 @@ import {
 } from "react-router";
 import { sessionWrapper } from "~/.server/session";
 import { GitHubIcon } from "~/icons/github";
+import {
+	getLangCookie,
+	isSupportedLang,
+	resolveLang,
+	SUPPORTED_LANGS,
+	type SupportedLang,
+} from "~/lib/lang";
 import { cn } from "~/lib/utils";
 import { getLocaleData, type Locale } from "~/locales/locale";
 
-const localeOptions = [
-	{ code: "en", label: "EN", title: "English" },
-	{ code: "zh-CN", label: "ZH", title: "Chinese" },
-	{ code: "es", label: "ES", title: "Spanish" },
-	{ code: "fr", label: "FR", title: "French" },
-	{ code: "ja", label: "JA", title: "Japanese" },
-	{ code: "ko", label: "KO", title: "Korean" },
-];
-const localeCodes = new Set(localeOptions.map((locale) => locale.code));
+const LANG_TITLES: Record<SupportedLang, string> = {
+	en: "English",
+	"zh-CN": "Chinese",
+	es: "Spanish",
+	fr: "French",
+	ja: "Japanese",
+	ko: "Korean",
+};
 
+// Derived from SUPPORTED_LANGS so the switcher, the cookie/param validation and
+// getLocaleData() can never drift apart into three separate language lists.
+const localeOptions = SUPPORTED_LANGS.map((code) => ({
+	code,
+	label: code === "zh-CN" ? "ZH" : code.slice(0, 2).toUpperCase(),
+	title: LANG_TITLES[code],
+}));
 function rememberLang(code: string) {
 	try {
 		document.cookie = `lang=${encodeURIComponent(code)}; path=/; max-age=31536000; samesite=lax`;
 	} catch {
 		// cookies unavailable (private mode); server falls back to Accept-Language
-	}
-}
-
-function getLangCookie(request: Request): string | null {
-	const cookie = request.headers.get("Cookie") || "";
-	const m = cookie.match(/(?:^|;\s*)lang=([^;]+)/);
-	if (!m) return null;
-	try {
-		const v = decodeURIComponent(m[1]);
-		return localeCodes.has(v) ? v : null;
-	} catch {
-		return null;
 	}
 }
 
@@ -64,16 +63,16 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 		// (cookie set on click), never bounce `/` back to a prefixed URL.
 		// Only first-time visitors (no cookie) get Accept-Language detection.
 		if (!getLangCookie(request)) {
-			const headers = {
-				"accept-language": request.headers.get("accept-language") || "",
-			};
-			const languages = new Negotiator({ headers: headers }).languages();
-			const locales = ["en", "zh-CN", "es", "fr", "ja", "ko"];
-			const defaultLocale = "en";
-			const lang = match(languages, locales, defaultLocale);
-			if (lang !== defaultLocale) {
-				const { pathname } = new URL(request.url);
-				return redirect(`/${lang}${pathname}`);
+			const resolved = resolveLang(request);
+			if (resolved !== "en") {
+				const url = new URL(request.url);
+				// `lang` is now encoded in the path, but keep everything else
+				// (utm_*, ref, ...) so the redirect never silently drops params.
+				url.searchParams.delete("lang");
+				const search = url.searchParams.toString();
+				return redirect(
+					`/${resolved}${url.pathname}${search ? `?${search}` : ""}`,
+				);
 			}
 		}
 	}
@@ -223,11 +222,11 @@ export default function HomeLayout() {
 	const params = useParams();
 	const { locale } = useLoaderData<typeof loader>();
 	const currentLang =
-		params.lang && localeCodes.has(params.lang) ? params.lang : "en";
+		params.lang && isSupportedLang(params.lang) ? params.lang : "en";
 
 	const buildLangHref = (code: string) => {
 		const segments = location.pathname.split("/").filter(Boolean);
-		const hasLangPrefix = segments.length > 0 && localeCodes.has(segments[0]);
+		const hasLangPrefix = segments.length > 0 && isSupportedLang(segments[0]);
 		const rest = hasLangPrefix ? segments.slice(1) : segments;
 		const basePath = rest.length ? `/${rest.join("/")}` : "";
 		const prefix = code === "en" ? "" : `/${code}`;

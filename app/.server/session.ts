@@ -8,7 +8,18 @@ type SessionData = {
 	mailboxToken?: string;
 };
 
-const DEFAULT_COOKIE_SECRET = "default_secret_change_me";
+// Fail closed: silently falling back to a public constant would let anyone
+// forge session cookies (and bypass PASSWORD protection) on a misconfigured
+// deploy. Set COOKIE_SECRET via dashboard secrets / .dev.vars instead.
+function requireSecret(env: Env): string {
+	const secret = env.COOKIE_SECRET;
+	if (!secret) {
+		throw new Error(
+			"Missing COOKIE_SECRET. Set it via Cloudflare secrets (production) or .dev.vars (local dev).",
+		);
+	}
+	return secret;
+}
 
 // Cache storage per secret instead of a global singleton so secret rotation
 // (or preview vs production bindings sharing an isolate) can't pin the first
@@ -19,7 +30,7 @@ const storageCache = new Map<
 >();
 
 export function sessionWrapper(env: Env) {
-	const secret = env.COOKIE_SECRET || DEFAULT_COOKIE_SECRET;
+	const secret = requireSecret(env);
 	const cached = storageCache.get(secret);
 	if (cached) return cached;
 	const sessionCookie = cookieWrapper(env);
@@ -32,7 +43,7 @@ export function sessionWrapper(env: Env) {
 
 export function cookieWrapper(env: Env) {
 	return createCookie("__session", {
-		secrets: [env.COOKIE_SECRET || DEFAULT_COOKIE_SECRET],
+		secrets: [requireSecret(env)],
 		sameSite: "lax",
 		httpOnly: true,
 		secure: true,
