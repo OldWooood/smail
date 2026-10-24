@@ -258,7 +258,7 @@ export default function HomeLayout() {
 						className="group flex items-center gap-2.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 					>
 						<img
-							src="/apple-touch-icon.png"
+							src="/favicon.svg"
 							alt=""
 							width={36}
 							height={36}

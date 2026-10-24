@@ -30,19 +30,10 @@ export const links: LinksFunction = () => [
 	},
 	{
 		rel: "icon",
-		href: "/favicon-32x32.png",
-		sizes: "32x32",
-		type: "image/png",
+		href: "/favicon.svg",
+		type: "image/svg+xml",
 	},
-	{
-		rel: "icon",
-		href: "/favicon-16x16.png",
-		sizes: "16x16",
-		type: "image/png",
-	},
-	{ rel: "icon", href: "/favicon.ico", sizes: "any" },
-	{ rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
-	{ rel: "manifest", href: "/site.webmanifest?v=9" },
+	{ rel: "manifest", href: "/site.webmanifest?v=11" },
 ];
 
 export async function loader({ params }: LoaderFunctionArgs) {

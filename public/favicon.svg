@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+	<title id="title">TempEmail</title>
+	<rect width="64" height="64" rx="14" fill="#472C6D"/>
+	<rect x="9.5" y="18.5" width="45" height="27" rx="4.5" fill="#F8F6F2"/>
+	<path d="M14.5 23.5 32 35.5l17.5-12" fill="none" stroke="#472C6D" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

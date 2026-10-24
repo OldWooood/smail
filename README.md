@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://email.deatrg.top/" target="_blank" rel="noopener">
-    <img width="120" src="./public/favicon.png" alt="TempEmail logo">
+    <img width="120" src="./public/favicon.svg" alt="TempEmail logo">
   </a>
 </p>
 <p align="center">
