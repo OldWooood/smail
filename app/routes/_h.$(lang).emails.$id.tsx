@@ -4,10 +4,13 @@ import {
 	data,
 	isRouteErrorResponse,
 	Link,
+	redirect,
 	useLoaderData,
 	useRouteError,
 } from "react-router";
 import { d1Wrapper } from "~/.server/db";
+import { findEmailMeta } from "~/.server/emails";
+import { findActiveMailbox, touchMailbox } from "~/.server/mailbox";
 import { sessionWrapper } from "~/.server/session";
 import { EmailReader } from "~/components/email-reader";
 import { Button } from "~/components/ui/button";
@@ -17,30 +20,28 @@ import { getLocaleData } from "~/locales/locale";
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
 	const id = params.id as string;
 	const lang = params.lang || "en";
-	const { getSession } = sessionWrapper(context.cloudflare.env);
+	const { getSession, destroySession } = sessionWrapper(context.cloudflare.env);
 	const session = await getSession(request.headers.get("Cookie"));
-	const messageTo = session.data.email;
-	if (!messageTo) {
-		throw new Response("Unauthorized", { status: 401 });
-	}
 	const db = d1Wrapper(context.cloudflare.env.DB);
+	const mailbox = await findActiveMailbox(
+		db,
+		session.data.mailboxId,
+		session.data.mailboxToken,
+	);
+	if (!mailbox) {
+		return redirect(lang === "en" ? "/" : `/${lang}`, {
+			headers: { "Set-Cookie": await destroySession(session) },
+		});
+	}
+
 	// Only metadata here: body is served lazily via /api/emails/:id/body
 	// so the parent document stays small even for large emails.
-	const email = await db.query.emails.findFirst({
-		columns: {
-			id: true,
-			from: true,
-			sender: true,
-			messageFrom: true,
-			subject: true,
-			createdAt: true,
-		},
-		where: (emails, { and, eq }) =>
-			and(eq(emails.id, id), eq(emails.messageTo, messageTo.toLowerCase())),
-	});
+	const email = await findEmailMeta(db, mailbox.id, id);
 	if (!email) {
 		throw new Response("Email not found", { status: 404 });
 	}
+	await touchMailbox(db, mailbox);
+
 	const senderAddress =
 		email.from?.address || email.sender?.address || email.messageFrom || "";
 	const newEmail = {

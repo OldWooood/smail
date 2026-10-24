@@ -4,7 +4,12 @@
 // Turnstile remains the primary bot shield when configured.
 
 export const CLAIM_LIMIT_PER_HOUR = 10;
-const WINDOW_SECONDS = 60 * 60;
+const WINDOW_MS = 60 * 60 * 1000;
+
+type RateLimitState = {
+	start: number;
+	count: number;
+};
 
 function rateLimitKey(ip: string) {
 	return `ratelimit:claim:${ip}`;
@@ -26,17 +31,31 @@ export async function checkClaimRateLimit(
 	if (!ip || ip === "unknown") return { allowed: true, remaining: limit };
 	const key = rateLimitKey(ip);
 	try {
-		const raw = await kv.get(key);
-		const count = raw ? Number.parseInt(raw, 10) || 0 : 0;
-		if (count >= limit) return { allowed: false, remaining: 0 };
-		const next = count + 1;
-		// Refresh the window on first hit; subsequent hits keep original TTL
-		// by only setting expiration when creating the key.
-		if (count === 0) {
-			await kv.put(key, String(next), { expirationTtl: WINDOW_SECONDS });
-		} else {
-			await kv.put(key, String(next));
+		const now = Date.now();
+		const raw = await kv.get<RateLimitState>(key, "json");
+		const state =
+			raw && Number.isFinite(raw.start) && Number.isFinite(raw.count)
+				? raw
+				: null;
+		let start = now;
+		let count = 0;
+		if (state && now - state.start < WINDOW_MS) {
+			start = state.start;
+			count = state.count;
 		}
+
+		if (count >= limit) return { allowed: false, remaining: 0 };
+
+		const next = count + 1;
+		const remainingTtlSeconds = Math.max(
+			60,
+			Math.ceil((start + WINDOW_MS - now) / 1000),
+		);
+		// Always write an expiry. A bare `put` would drop the previous TTL and
+		// turn a one-hour window into a permanent IP lockout.
+		await kv.put(key, JSON.stringify({ start, count: next }), {
+			expirationTtl: remainingTtlSeconds,
+		});
 		return { allowed: true, remaining: Math.max(0, limit - next) };
 	} catch (err) {
 		console.error("Rate-limit check failed, allowing request:", err);

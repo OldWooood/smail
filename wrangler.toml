@@ -23,4 +23,6 @@ migrations_dir = "app/drizzle"
 DOMAIN = "deatrg.top"
 
 [triggers]
-crons = ["0 3 * * *"]
+# Expired mailboxes are already inaccessible immediately; the sweep physically
+# removes them and their messages shortly after the 24h inactivity deadline.
+crons = ["*/15 * * * *"]

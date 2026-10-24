@@ -9,5 +9,4 @@ node_modules
 
 .wrangler
 .react-router
-drizzle.config.ts
 

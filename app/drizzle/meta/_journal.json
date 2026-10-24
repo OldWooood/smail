@@ -29,6 +29,13 @@
 			"when": 1727756028486,
 			"tag": "0003_mixed_gideon",
 			"breakpoints": true
+		},
+		{
+			"idx": 4,
+			"version": "6",
+			"when": 1792854237738,
+			"tag": "0004_mailbox_rework",
+			"breakpoints": true
 		}
 	]
 }

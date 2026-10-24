@@ -50,9 +50,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 		const { getSession } = sessionWrapper(context.cloudflare.env);
 		const session = await getSession(request.headers.get("Cookie"));
 		const { pathname } = new URL(request.url);
-		const isAuthed =
-			session.data.authed === true ||
-			session.data.password === context.cloudflare.env.PASSWORD;
+		const isAuthed = session.data.authed === true;
 		if (!isAuthed && !pathname.includes("auth")) {
 			return redirect("/auth");
 		}

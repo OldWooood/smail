@@ -30,7 +30,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
 		);
 		const session = await getSession(request.headers.get("Cookie"));
 		session.set("authed", true);
-		session.unset("password");
 		return redirect("/", {
 			headers: {
 				"Set-Cookie": await commitSession(session),

@@ -2,48 +2,63 @@ import type { LoaderFunctionArgs } from "react-router";
 import { data } from "react-router";
 import { d1Wrapper } from "~/.server/db";
 import { listEmails } from "~/.server/emails";
-import { mailboxStateKey, quoteEtag } from "~/.server/mailbox";
+import {
+	findActiveMailbox,
+	mailboxEtag,
+	touchMailbox,
+} from "~/.server/mailbox";
 import { sessionWrapper } from "~/.server/session";
 import { resolveLang } from "~/lib/lang";
 
+const NO_STORE = {
+	"Cache-Control": "private, no-store",
+	Vary: "Cookie",
+} as const;
+
 export async function loader({ request, context }: LoaderFunctionArgs) {
-	const { getSession } = sessionWrapper(context.cloudflare.env);
+	const { getSession, destroySession } = sessionWrapper(context.cloudflare.env);
 	const lang = resolveLang(request);
 	const session = await getSession(request.headers.get("Cookie"));
-	const email = session.data.email;
+	const db = d1Wrapper(context.cloudflare.env.DB);
+	const mailbox = await findActiveMailbox(
+		db,
+		session.data.mailboxId,
+		session.data.mailboxToken,
+	);
 
-	if (!email) {
+	if (!mailbox) {
+		// The address expired, was deleted, or the cookie is stale. Clear it so
+		// the client can fall back to the landing page without a redirect loop.
 		return data(
-			{ emails: [] },
-			{ headers: { "Cache-Control": "private, no-store", Vary: "Cookie" } },
+			{ error: "mailbox_expired" as const, emails: [] },
+			{
+				status: 401,
+				headers: {
+					...NO_STORE,
+					"Set-Cookie": await destroySession(session),
+				},
+			},
 		);
 	}
 
-	const kv = context.cloudflare.env.KV;
-	const stateToken = await kv.get(mailboxStateKey(email));
-	const etag = stateToken ? quoteEtag(stateToken) : null;
-
-	if (etag && request.headers.get("If-None-Match") === etag) {
+	const etag = mailboxEtag(mailbox);
+	if (request.headers.get("If-None-Match") === etag) {
+		await touchMailbox(db, mailbox);
 		return new Response(null, {
 			status: 304,
-			headers: {
-				ETag: etag,
-				"Cache-Control": "private, no-store",
-				Vary: "Cookie",
-			},
+			headers: { ...NO_STORE, ETag: etag },
 		});
 	}
 
-	const db = d1Wrapper(context.cloudflare.env.DB);
-	const emails = await listEmails(db, email, lang);
+	const emails = await listEmails(db, mailbox.id, lang);
+	await touchMailbox(db, mailbox);
 
 	return data(
 		{ emails },
 		{
 			headers: {
-				"Cache-Control": "private, no-store",
-				Vary: "Cookie",
-				...(etag ? { ETag: etag } : undefined),
+				...NO_STORE,
+				ETag: etag,
 			},
 		},
 	);

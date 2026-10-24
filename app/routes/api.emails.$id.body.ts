@@ -1,5 +1,7 @@
 import type { LoaderFunctionArgs } from "react-router";
 import { d1Wrapper } from "~/.server/db";
+import { findEmailBody } from "~/.server/emails";
+import { findActiveMailbox, touchMailbox } from "~/.server/mailbox";
 import { sessionWrapper } from "~/.server/session";
 
 function escapeHtml(text: string) {
@@ -12,26 +14,32 @@ function escapeHtml(text: string) {
 }
 
 // Serves the email body as a standalone document so the detail page shell
-// stays small. The body is scoped to the current mailbox session and must not
-// be reused after the user deletes or switches mailboxes.
+// stays small. Access is scoped to the active mailbox, not merely to an
+// address string in the cookie.
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
 	const id = params.id as string;
-	const { getSession } = sessionWrapper(context.cloudflare.env);
+	const { getSession, destroySession } = sessionWrapper(context.cloudflare.env);
 	const session = await getSession(request.headers.get("Cookie"));
-	const messageTo = session.data.email;
-	if (!messageTo) {
-		throw new Response("Unauthorized", { status: 401 });
+	const db = d1Wrapper(context.cloudflare.env.DB);
+	const mailbox = await findActiveMailbox(
+		db,
+		session.data.mailboxId,
+		session.data.mailboxToken,
+	);
+	if (!mailbox) {
+		throw new Response("Unauthorized", {
+			status: 401,
+			headers: { "Set-Cookie": await destroySession(session) },
+		});
 	}
 
-	const db = d1Wrapper(context.cloudflare.env.DB);
-	const email = await db.query.emails.findFirst({
-		columns: { id: true, html: true, text: true },
-		where: (emails, { and, eq }) =>
-			and(eq(emails.id, id), eq(emails.messageTo, messageTo.toLowerCase())),
-	});
+	const email = await findEmailBody(db, mailbox.id, id);
 	if (!email) {
 		throw new Response("Email not found", { status: 404 });
 	}
+
+	// Opening a message is owner activity too.
+	await touchMailbox(db, mailbox);
 
 	const url = new URL(request.url);
 	const isDark = url.searchParams.get("theme") === "dark";

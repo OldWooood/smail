@@ -1,53 +1,73 @@
 import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { nanoid } from "nanoid";
-import type { Address, Attachment, Header } from "postal-mime";
+import type { Address } from "postal-mime";
 
+/**
+ * A temporary mailbox is the single source of truth for ownership.
+ *
+ * - `address` is unique. D1's unique index (not read-then-write KV) is what
+ *   makes a claim atomic.
+ * - `token` is a secret stored in the signed session cookie. A mailbox id is
+ *   never reused, so an old session can never read a newly claimed mailbox
+ *   that happens to have the same address.
+ * - `expires_at` is a sliding inactivity deadline. Any authenticated read
+ *   refreshes it; nothing else does. Expired mailboxes are inaccessible
+ *   immediately and physically removed by the scheduled purge.
+ * - `revision` changes whenever a message is stored, giving the inbox poll a
+ *   cheap ETag without querying the emails table on 304 responses.
+ */
+export const mailboxes = sqliteTable(
+	"mailboxes",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => nanoid()),
+		address: text("address").notNull().unique(),
+		token: text("token").notNull(),
+		createdAt: integer("created_at", { mode: "timestamp" })
+			.notNull()
+			.$defaultFn(() => new Date()),
+		lastUsedAt: integer("last_used_at", { mode: "timestamp" })
+			.notNull()
+			.$defaultFn(() => new Date()),
+		expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+		revision: integer("revision").notNull().default(0),
+	},
+	(table) => [index("mailboxes_expires_at_idx").on(table.expiresAt)],
+);
+
+/**
+ * Messages are owned by a mailbox id, never by the address string.
+ *
+ * Reusing an address therefore cannot expose messages from its previous
+ * owner: the new mailbox always gets a fresh id and all queries are scoped by
+ * `mailbox_id`.
+ */
 export const emails = sqliteTable(
 	"emails",
 	{
 		id: text("id")
 			.primaryKey()
 			.$defaultFn(() => nanoid()),
-		domain: text("domain"),
+		mailboxId: text("mailbox_id")
+			.notNull()
+			.references(() => mailboxes.id, { onDelete: "cascade" }),
 		messageFrom: text("message_from"),
-		messageTo: text("message_to"),
-		// content from raw email
-		headers: text("headers", { mode: "json" }).$type<Header[]>().notNull(),
 		from: text("from", { mode: "json" }).$type<Address>().notNull(),
 		sender: text("sender", { mode: "json" }).$type<Address>(),
-		replyTo: text("reply_to", { mode: "json" }).$type<Address[]>(),
-		deliveredTo: text("delivered_to"),
-		returnPath: text("return_path"),
-		to: text("to", { mode: "json" }).$type<Address[]>(),
-		cc: text("cc", { mode: "json" }).$type<Address[]>(),
-		bcc: text("bcc", { mode: "json" }).$type<Address[]>(),
 		subject: text("subject"),
-		messageId: text("message_id"),
-		inReplyTo: text("in_reply_to"),
-		references: text("references"),
-		date: text("date"),
 		html: text("html"),
 		text: text("text"),
-		attachments: text("attachments", { mode: "json" })
-			.$type<Attachment[]>()
-			.notNull(),
 		createdAt: integer("created_at", { mode: "timestamp" })
 			.notNull()
 			.$defaultFn(() => new Date()),
-		updatedAt: integer("updated_at", { mode: "timestamp" })
-			.notNull()
-			.$defaultFn(() => new Date())
-			.$onUpdateFn(() => new Date()),
 	},
-	(table) => {
-		return {
-			messageToCreatedAtIdx: index("message_to_created_at_idx").on(
-				table.messageTo,
-				table.createdAt,
-			),
-		};
-	},
+	(table) => [
+		index("emails_mailbox_created_at_idx").on(table.mailboxId, table.createdAt),
+	],
 );
 
+export type Mailbox = typeof mailboxes.$inferSelect;
+export type MailboxInsert = typeof mailboxes.$inferInsert;
 export type Email = typeof emails.$inferSelect;
 export type EmailInsert = typeof emails.$inferInsert;

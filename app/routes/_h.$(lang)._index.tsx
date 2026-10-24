@@ -1,5 +1,4 @@
 import randomName from "@scaleway/random-name";
-import { eq } from "drizzle-orm";
 import { Clock4, Loader2, MailOpen, Trash2 } from "lucide-react";
 import { customAlphabet } from "nanoid";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -17,13 +16,14 @@ import {
 	useLoaderData,
 	useNavigation,
 } from "react-router";
-import { d1Wrapper, schema } from "~/.server/db";
+import { d1Wrapper } from "~/.server/db";
 import { listEmails } from "~/.server/emails";
 import {
-	MAILBOX_STATE_TTL_SECONDS,
-	mailboxClaimKey,
-	mailboxStateKey,
-	nextMailboxStateToken,
+	claimMailbox,
+	destroyMailbox,
+	findActiveMailbox,
+	normalizeDomain,
+	touchMailbox,
 } from "~/.server/mailbox";
 import { checkClaimRateLimit, getClientIp } from "~/.server/ratelimit";
 import { sessionWrapper } from "~/.server/session";
@@ -34,6 +34,7 @@ import { type Email, EmailList } from "~/components/email-list";
 import { EmailReader } from "~/components/email-reader";
 import { HeroSection } from "~/components/marketing/hero-section";
 import { Button } from "~/components/ui/button";
+import type { Mailbox } from "~/drizzle/schema";
 import { isSupportedLang, SUPPORTED_LANGS } from "~/lib/lang";
 import { cn } from "~/lib/utils";
 import { getLocaleData, type Locale } from "~/locales/locale";
@@ -51,12 +52,6 @@ function languagePath(lang: string) {
 	return lang === "en" ? "/" : `/${lang}`;
 }
 
-const MAILBOX_TTL_SECONDS = 60 * 60 * 24;
-
-const tokenAlphabet = customAlphabet(
-	"abcdefghijklmnopqrstuvwxyz0123456789",
-	12,
-);
 const numericSuffix = customAlphabet("0123456789", 4);
 
 type ActionData = {
@@ -71,11 +66,7 @@ type ActionData = {
 };
 
 function getDomain(env: Env) {
-	return env.DOMAIN || "smail.pw";
-}
-
-function mailboxKey(email: string) {
-	return mailboxClaimKey(email);
+	return normalizeDomain(env.DOMAIN);
 }
 
 function normalizeLocalPart(input: string) {
@@ -89,23 +80,6 @@ function normalizeLocalPart(input: string) {
 
 function createRandomLocalPart() {
 	return `${randomName("", "-")}-${numericSuffix()}`;
-}
-
-async function claimMailbox(kv: KVNamespace, email: string) {
-	const key = mailboxKey(email);
-	const existing = await kv.get(key);
-	if (existing) return null;
-	const token = tokenAlphabet();
-	await kv.put(key, token, { expirationTtl: MAILBOX_TTL_SECONDS });
-	return token;
-}
-
-async function releaseMailbox(kv: KVNamespace, email: string, token: string) {
-	const key = mailboxKey(email);
-	const existing = await kv.get(key);
-	if (existing === token) {
-		await kv.delete(key);
-	}
 }
 
 export const links: LinksFunction = () => [
@@ -171,7 +145,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 };
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
-	const { getSession } = sessionWrapper(context.cloudflare.env);
+	const { getSession, destroySession } = sessionWrapper(context.cloudflare.env);
 	const lang = params.lang && isSupportedLang(params.lang) ? params.lang : "en";
 	const origin = new URL(request.url).origin;
 	const [session, locale] = await Promise.all([
@@ -179,41 +153,65 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 		getLocaleData(lang),
 	]);
 	const domain = getDomain(context.cloudflare.env);
-	const email = session.data.email;
 
-	// 只加载初始邮件列表
-	let emails: {
-		id: string;
-		subject: string | null;
-		createdAt: string;
-		senderLabel: string;
-	}[] = [];
-	if (email) {
-		const db = d1Wrapper(context.cloudflare.env.DB);
-		emails = await listEmails(db, email, lang);
+	const db = d1Wrapper(context.cloudflare.env.DB);
+	const mailbox = await findActiveMailbox(
+		db,
+		session.data.mailboxId,
+		session.data.mailboxToken,
+	);
+	if (mailbox) {
+		await touchMailbox(db, mailbox);
 	}
 
-	return {
-		lang,
-		locale,
-		origin,
-		domain,
-		email,
-		emails,
-		turnstileSiteKey: context.cloudflare.env.TURNSTILE_SITE_KEY,
+	const email = mailbox?.address ?? null;
+	const emails = mailbox ? await listEmails(db, mailbox.id, lang) : [];
+
+	const headers: Record<string, string> = {
+		"Cache-Control": "private, no-store",
+		Vary: "Cookie",
 	};
+	// Drop a stale credential so the browser does not keep sending it.
+	if (!mailbox && (session.data.mailboxId || session.data.mailboxToken)) {
+		headers["Set-Cookie"] = await destroySession(session);
+	}
+
+	return data(
+		{
+			lang,
+			locale,
+			origin,
+			domain,
+			email,
+			emails,
+			turnstileSiteKey: context.cloudflare.env.TURNSTILE_SITE_KEY,
+		},
+		{ headers },
+	);
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-	const { getSession, commitSession } = sessionWrapper(context.cloudflare.env);
+	const { getSession, commitSession, destroySession } = sessionWrapper(
+		context.cloudflare.env,
+	);
 	const session = await getSession(request.headers.get("Cookie"));
 	const { pathname } = new URL(request.url);
 	const domain = getDomain(context.cloudflare.env);
+	const db = d1Wrapper(context.cloudflare.env.DB);
+
 	switch (request.method) {
 		case "POST": {
-			if (session.data.email) {
+			// An active mailbox must be deleted before a different one can be
+			// created from the same browser.
+			const current = await findActiveMailbox(
+				db,
+				session.data.mailboxId,
+				session.data.mailboxToken,
+			);
+			if (current) {
 				return data<ActionData>({ error: "already_assigned" }, { status: 400 });
 			}
+
 			const clientIp = getClientIp(request);
 			const rate = await checkClaimRateLimit(
 				context.cloudflare.env.KV,
@@ -261,24 +259,24 @@ export async function action({ request, context }: ActionFunctionArgs) {
 				);
 			}
 
-			const localPart = normalizedLocal || createRandomLocalPart();
-			const email = `${localPart}@${domain}`;
-			const token = await claimMailbox(context.cloudflare.env.KV, email);
-			if (!token) {
+			// A random address collision is retried instead of surfacing a
+			// confusing "address taken" error. Custom addresses get one try.
+			const attempts = normalizedLocal ? 1 : 8;
+			let mailbox: Mailbox | null = null;
+			for (let i = 0; i < attempts; i++) {
+				const localPart = normalizedLocal || createRandomLocalPart();
+				mailbox = await claimMailbox(db, `${localPart}@${domain}`);
+				if (mailbox) break;
+			}
+			if (!mailbox) {
 				return data<ActionData>(
 					{ error: "email_taken", localPart: rawLocalPart },
 					{ status: 409 },
 				);
 			}
 
-			await context.cloudflare.env.KV.put(
-				mailboxStateKey(email),
-				nextMailboxStateToken(),
-				{ expirationTtl: MAILBOX_STATE_TTL_SECONDS },
-			);
-
-			session.set("email", email);
-			session.set("mailboxToken", token);
+			session.set("mailboxId", mailbox.id);
+			session.set("mailboxToken", mailbox.token);
 			return redirect(pathname, {
 				headers: {
 					"Set-Cookie": await commitSession(session),
@@ -286,37 +284,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
 			});
 		}
 		case "DELETE": {
-			if (!session.data.email) {
-				return null;
-			}
-			const email = session.data.email;
-			const db = d1Wrapper(context.cloudflare.env.DB);
-			context.cloudflare.ctx.waitUntil(
-				(async () => {
-					await db
-						.delete(schema.emails)
-						.where(eq(schema.emails.messageTo, email.toLowerCase()));
-					if (session.data.mailboxToken) {
-						await releaseMailbox(
-							context.cloudflare.env.KV,
-							email,
-							session.data.mailboxToken,
-						);
-					}
-					await context.cloudflare.env.KV.put(
-						mailboxStateKey(email),
-						nextMailboxStateToken(),
-						{ expirationTtl: MAILBOX_STATE_TTL_SECONDS },
-					);
-				})().catch((err) => {
-					console.error("Failed to purge mailbox:", err);
-				}),
+			await destroyMailbox(
+				db,
+				session.data.mailboxId,
+				session.data.mailboxToken,
 			);
-			session.unset("email");
-			session.unset("mailboxToken");
 			return redirect(pathname, {
 				headers: {
-					"Set-Cookie": await commitSession(session),
+					"Set-Cookie": await destroySession(session),
 				},
 			});
 		}

@@ -25,7 +25,7 @@
 		"title_a": "Correo temporal,",
 		"title_b": "sin registrarse.",
 		"subtitle": "Direcciones desechables que funcionan. Rapidas, privadas y de codigo abierto.",
-		"trust": "Sin cuenta. Sin rastreo. Caduca en 24 horas."
+		"trust": "Sin cuenta. Sin rastreo. Se elimina tras 24 horas sin uso."
 	},
 	"form": {
 		"creating": "Creando…",
@@ -53,7 +53,7 @@
 		"copy": "Copiar correo",
 		"delete": "Eliminar",
 		"delete_confirm": "Haz clic de nuevo para confirmar",
-		"expires_hint": "Esta direccion caduca automaticamente 24 horas despues de crearla"
+		"expires_hint": "Esta direccion y todos sus correos se eliminan tras 24 horas sin uso"
 	},
 	"nav": {
 		"skip": "Saltar al contenido",

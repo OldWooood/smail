@@ -25,7 +25,7 @@
 		"title_a": "Email jetable,",
 		"title_b": "sans inscription.",
 		"subtitle": "Des adresses jetables qui fonctionnent. Rapides, privees et open source.",
-		"trust": "Sans compte. Sans suivi. Expire apres 24 heures."
+		"trust": "Sans compte. Sans suivi. Supprime apres 24 heures d'inactivite."
 	},
 	"form": {
 		"creating": "Creation…",
@@ -53,7 +53,7 @@
 		"copy": "Copier l'email",
 		"delete": "Supprimer",
 		"delete_confirm": "Cliquez a nouveau pour confirmer",
-		"expires_hint": "Cette adresse expire automatiquement 24 heures apres sa creation"
+		"expires_hint": "Cette adresse et tous ses emails sont supprimes apres 24 heures d'inactivite"
 	},
 	"nav": {
 		"skip": "Aller au contenu",

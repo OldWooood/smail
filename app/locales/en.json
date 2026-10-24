@@ -25,7 +25,7 @@
 		"title_a": "Temporary email,",
 		"title_b": "without the sign-up.",
 		"subtitle": "Disposable addresses that work. Fast, private, and open source.",
-		"trust": "No account. No tracking. Expires in 24 hours."
+		"trust": "No account. No tracking. Deleted after 24 hours of inactivity."
 	},
 	"form": {
 		"creating": "Creating…",
@@ -53,7 +53,7 @@
 		"copy": "Copy Email",
 		"delete": "Delete",
 		"delete_confirm": "Click again to confirm",
-		"expires_hint": "This address expires automatically 24 hours after creation"
+		"expires_hint": "This address and all its emails are deleted after 24 hours of inactivity"
 	},
 	"nav": {
 		"skip": "Skip to content",

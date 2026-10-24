@@ -209,6 +209,31 @@ export function EmailList({
 				return;
 			}
 
+			if (response.status === 401) {
+				// Mailbox expired or was deleted from another tab. The response
+				// also clears the stale session cookie, so a reload lands on the
+				// create-mailbox screen. Guard against a reload loop if cookies
+				// are blocked.
+				const key = "smail_session_expired_reload";
+				let lastReload = 0;
+				try {
+					lastReload = Number(sessionStorage.getItem(key) || 0);
+				} catch {
+					// storage unavailable
+				}
+				if (Date.now() - lastReload > 10_000) {
+					try {
+						sessionStorage.setItem(key, String(Date.now()));
+					} catch {
+						// storage unavailable
+					}
+					window.location.reload();
+				} else {
+					setError("Mailbox expired");
+				}
+				return;
+			}
+
 			if (!response.ok) {
 				throw new Error("Failed to fetch emails");
 			}

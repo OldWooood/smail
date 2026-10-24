@@ -1,10 +1,8 @@
 import { createCookie, createCookieSessionStorage } from "react-router";
 
 type SessionData = {
-	email?: string;
 	authed?: boolean;
-	// legacy: older cookies stored the raw password; still accepted on read
-	password?: string;
+	mailboxId?: string;
 	mailboxToken?: string;
 };
 
@@ -48,6 +46,8 @@ export function cookieWrapper(env: Env) {
 		httpOnly: true,
 		secure: true,
 		path: "/",
+		// The cookie is only a bearer credential for the mailbox row. Actual
+		// expiry is enforced by mailboxes.expires_at.
 		maxAge: 60 * 60 * 24 * 30,
 	});
 }
