@@ -6,7 +6,7 @@ import { ScrollArea } from "~/components/ui/scroll-area";
 import { cn } from "~/lib/utils";
 import type { Locale } from "~/locales/locale";
 
-interface Email {
+export interface Email {
 	id: string;
 	subject: string | null;
 	createdAt: string;
@@ -18,6 +18,8 @@ interface EmailListProps {
 	locale: Locale;
 	lang: string;
 	mailbox: string;
+	selectedId?: string;
+	onOpen?: (email: Email) => void;
 }
 
 const REFRESH_INTERVAL = 10000;
@@ -77,29 +79,45 @@ function emailsChanged(a: Email[], b: Email[]) {
 const EmailListItem = memo(function EmailListItem({
 	email,
 	isUnread,
+	isSelected,
 	onSelect,
+	onOpen,
 	detailHref,
 	locale,
 }: {
 	email: Email;
 	isUnread: boolean;
+	isSelected: boolean;
 	/** Stable reference (useCallback) so memo's shallow compare can bail out. */
 	onSelect: (id: string) => void;
+	onOpen?: (email: Email) => void;
 	detailHref: (id: string) => string;
 	locale: Locale;
 }) {
 	return (
 		<NavLink
-			prefetch="render"
-			viewTransition
+			reloadDocument
 			to={detailHref(email.id)}
-			onClick={() => onSelect(email.id)}
+			aria-current={isSelected ? "true" : undefined}
+			onClick={(event) => {
+				onSelect(email.id);
+				if (onOpen) {
+					event.preventDefault();
+					onOpen(email);
+				}
+			}}
 			className={cn(
 				"group relative flex items-center gap-3 px-4 py-3.5 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
-				"hover:bg-muted/40",
+				isSelected ? "bg-primary/5 hover:bg-primary/10" : "hover:bg-muted/40",
 				isUnread && "animate-slide-up",
 			)}
 		>
+			{isSelected && (
+				<span
+					aria-hidden
+					className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-primary"
+				/>
+			)}
 			<span
 				aria-hidden
 				className={cn(
@@ -144,6 +162,8 @@ export function EmailList({
 	locale,
 	lang,
 	mailbox,
+	selectedId,
+	onOpen,
 }: EmailListProps) {
 	const [emails, setEmails] = useState<Email[]>(initialEmails);
 	const [isManualRefreshing, setIsManualRefreshing] = useState(false);
@@ -344,7 +364,7 @@ export function EmailList({
 	);
 
 	return (
-		<div className="flex min-h-0 w-full flex-1 flex-col gap-3">
+		<div className="flex h-full min-h-0 w-full min-w-0 flex-col gap-3">
 			<div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
 				<div className="flex items-baseline gap-2">
 					<h1 className="text-base font-semibold text-foreground">
@@ -425,7 +445,9 @@ export function EmailList({
 									key={email.id}
 									email={email}
 									isUnread={mounted && !seenIds.has(email.id)}
+									isSelected={selectedId === email.id}
 									onSelect={markSeen}
+									onOpen={onOpen}
 									detailHref={detailHref}
 									locale={locale}
 								/>

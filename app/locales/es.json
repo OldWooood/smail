@@ -42,7 +42,9 @@
 		"notification_title": "Nuevo correo",
 		"notification_body": "Has recibido un nuevo correo!",
 		"notify_enable": "Activar notificaciones",
-		"notify_enabled": "Notificaciones activadas"
+		"notify_enabled": "Notificaciones activadas",
+		"select_email": "Selecciona un correo",
+		"select_hint": "Elige un mensaje de la lista para leerlo aqui."
 	},
 	"detail": {
 		"back": "Volver"

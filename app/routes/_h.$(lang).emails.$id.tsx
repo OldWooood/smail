@@ -1,4 +1,4 @@
-import { ArrowLeft, Clock, User } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
 import {
 	data,
@@ -9,6 +9,7 @@ import {
 } from "react-router";
 import { d1Wrapper } from "~/.server/db";
 import { sessionWrapper } from "~/.server/session";
+import { EmailReader } from "~/components/email-reader";
 import { Button } from "~/components/ui/button";
 import { formatEmailDate } from "~/lib/email";
 import { getLocaleData } from "~/locales/locale";
@@ -83,11 +84,6 @@ export function ErrorBoundary() {
 
 export default function EmailDetail() {
 	const { locale, email } = useLoaderData<typeof loader>();
-	const senderLabel =
-		email.from?.name || email.senderAddress || email.subject || "?";
-	const senderInitial = [...senderLabel.trim()][0]?.toUpperCase() || "@";
-	// The email canvas is always light so arbitrary HTML stays readable.
-	const bodySrc = `/api/emails/${email.id}/body`;
 
 	return (
 		<div className="mx-auto flex w-full max-w-5xl min-h-0 flex-1 flex-col px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
@@ -99,60 +95,24 @@ export default function EmailDetail() {
 						size="sm"
 						className="-ml-2 gap-1.5 text-muted-foreground hover:text-foreground"
 					>
-						<Link prefetch="viewport" viewTransition to="/">
+						<Link reloadDocument to="/">
 							<ArrowLeft className="h-4 w-4" />
 							<span>{locale.detail.back}</span>
 						</Link>
 					</Button>
 					<span className="text-xs text-muted-foreground/60">/</span>
-					<span className="truncate text-xs font-medium text-muted-foreground">
+					<h1 className="truncate text-xs font-medium text-muted-foreground">
 						{locale.email_detail}
-					</span>
+					</h1>
 				</div>
 
-				<div className="panel flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl">
-					<div className="shrink-0 border-b border-border px-5 py-5 sm:px-6">
-						<div className="flex items-start gap-3">
-							<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-base font-semibold uppercase text-primary ring-1 ring-primary/20">
-								{senderInitial}
-							</div>
-							<div className="min-w-0 flex-1">
-								<h1 className="text-lg font-semibold leading-tight text-foreground sm:text-xl">
-									{email.subject || locale.list.no_subject}
-								</h1>
-								<div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground sm:text-sm">
-									{email.senderAddress && (
-										<span className="flex min-w-0 items-center gap-1.5">
-											<User className="h-3.5 w-3.5 shrink-0" />
-											<span
-												translate="no"
-												className="truncate font-mono text-foreground/80"
-											>
-												{email.senderAddress.toLowerCase()}
-											</span>
-										</span>
-									)}
-									<span className="flex items-center gap-1.5">
-										<Clock className="h-3.5 w-3.5" />
-										<span className="font-mono">{email.createdAt}</span>
-									</span>
-								</div>
-							</div>
-						</div>
-					</div>
-
-					<div className="min-h-0 flex-1 bg-[#fdfdfc]">
-						<iframe
-							key={bodySrc}
-							title={email.subject || "Email Content"}
-							src={bodySrc}
-							className="h-full w-full bg-[#fdfdfc]"
-							loading="eager"
-							referrerPolicy="no-referrer"
-							sandbox="allow-popups allow-popups-to-escape-sandbox"
-						/>
-					</div>
-				</div>
+				<EmailReader
+					id={email.id}
+					subject={email.subject}
+					sender={email.senderAddress}
+					createdAt={email.createdAt}
+					noSubject={locale.list.no_subject}
+				/>
 			</div>
 		</div>
 	);

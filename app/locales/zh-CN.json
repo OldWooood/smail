@@ -42,7 +42,9 @@
 		"notification_title": "新邮件",
 		"notification_body": "你收到了一封新邮件!",
 		"notify_enable": "开启新邮件通知",
-		"notify_enabled": "通知已开启"
+		"notify_enabled": "通知已开启",
+		"select_email": "选择一封邮件",
+		"select_hint": "从左侧列表选择邮件，在这里阅读。"
 	},
 	"detail": {
 		"back": "返回"

@@ -42,7 +42,9 @@
 		"notification_title": "새 이메일",
 		"notification_body": "새 이메일을 받았습니다!",
 		"notify_enable": "알림 켜기",
-		"notify_enabled": "알림 켜짐"
+		"notify_enabled": "알림 켜짐",
+		"select_email": "이메일 선택",
+		"select_hint": "왼쪽 목록에서 이메일을 선택하면 여기에 표시됩니다."
 	},
 	"detail": {
 		"back": "뒤로"

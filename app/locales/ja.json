@@ -42,7 +42,9 @@
 		"notification_title": "新しいメール",
 		"notification_body": "新しいメールを受信しました!",
 		"notify_enable": "通知を有効にする",
-		"notify_enabled": "通知が有効になりました"
+		"notify_enabled": "通知が有効になりました",
+		"select_email": "メールを選択",
+		"select_hint": "左の一覧からメールを選ぶと、ここに表示されます。"
 	},
 	"detail": {
 		"back": "戻る"

@@ -42,7 +42,9 @@
 		"notification_title": "New Email",
 		"notification_body": "You have received a new email!",
 		"notify_enable": "Enable notifications",
-		"notify_enabled": "Notifications enabled"
+		"notify_enabled": "Notifications enabled",
+		"select_email": "Select an email",
+		"select_hint": "Choose a message from the list to read it here."
 	},
 	"detail": {
 		"back": "Back"

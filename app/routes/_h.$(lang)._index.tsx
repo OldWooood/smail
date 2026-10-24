@@ -1,8 +1,8 @@
 import randomName from "@scaleway/random-name";
 import { eq } from "drizzle-orm";
-import { Clock4, Loader2, Trash2 } from "lucide-react";
+import { Clock4, Loader2, MailOpen, Trash2 } from "lucide-react";
 import { customAlphabet } from "nanoid";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type {
 	ActionFunctionArgs,
 	LinksFunction,
@@ -30,7 +30,8 @@ import { sessionWrapper } from "~/.server/session";
 import { verifyTurnstile } from "~/.server/turnstile";
 import { AuthForm } from "~/components/auth-form";
 import { CopyButton } from "~/components/copy-button";
-import { EmailList } from "~/components/email-list";
+import { type Email, EmailList } from "~/components/email-list";
+import { EmailReader } from "~/components/email-reader";
 import { HeroSection } from "~/components/marketing/hero-section";
 import { Button } from "~/components/ui/button";
 import { isSupportedLang, SUPPORTED_LANGS } from "~/lib/lang";
@@ -459,6 +460,20 @@ export default function Index() {
 	const displayEmail = email ? email.toLowerCase() : null;
 
 	const [token, setToken] = useState("");
+	const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
+	const [isDesktop, setIsDesktop] = useState(false);
+
+	useEffect(() => {
+		const mql = window.matchMedia("(min-width: 1024px)");
+		const update = () => setIsDesktop(mql.matches);
+		update();
+		mql.addEventListener("change", update);
+		return () => mql.removeEventListener("change", update);
+	}, []);
+
+	const handleOpenEmail = useCallback((nextEmail: Email) => {
+		setSelectedEmail(nextEmail);
+	}, []);
 
 	return (
 		<>
@@ -470,12 +485,42 @@ export default function Index() {
 							locale={locale}
 							displayEmail={displayEmail}
 						/>
-						<EmailList
-							initialEmails={emails}
-							locale={locale}
-							lang={lang}
-							mailbox={displayEmail}
-						/>
+						<div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-[380px_minmax(0,1fr)]">
+							<EmailList
+								initialEmails={emails}
+								locale={locale}
+								lang={lang}
+								mailbox={displayEmail}
+								selectedId={selectedEmail?.id}
+								onOpen={isDesktop ? handleOpenEmail : undefined}
+							/>
+
+							<div className="hidden min-h-0 min-w-0 flex-col gap-3 lg:flex">
+								<div aria-hidden className="h-9 shrink-0" />
+								{selectedEmail ? (
+									<EmailReader
+										id={selectedEmail.id}
+										subject={selectedEmail.subject}
+										sender={selectedEmail.senderLabel || ""}
+										createdAt={selectedEmail.createdAt}
+										noSubject={locale.list.no_subject}
+										className="min-w-0"
+									/>
+								) : (
+									<div className="panel flex min-h-0 flex-1 flex-col items-center justify-center rounded-2xl px-6 text-center">
+										<div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20">
+											<MailOpen className="h-8 w-8" />
+										</div>
+										<p className="text-sm font-semibold text-foreground">
+											{locale.list.select_email}
+										</p>
+										<p className="mt-1 max-w-xs text-xs leading-relaxed text-muted-foreground">
+											{locale.list.select_hint}
+										</p>
+									</div>
+								)}
+							</div>
+						</div>
 					</div>
 				</section>
 			) : (

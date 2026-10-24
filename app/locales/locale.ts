@@ -43,6 +43,8 @@ export interface Locale {
 		notification_body: string;
 		notify_enable: string;
 		notify_enabled: string;
+		select_email: string;
+		select_hint: string;
 	};
 	detail: {
 		back: string;
