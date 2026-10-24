@@ -1,7 +1,8 @@
 {
 	"description": "快速、私密的临时邮箱服务",
-	"button": "获取邮箱",
-	"card_description": "这是你的临时邮箱, 邮件列表每10秒钟刷新",
+	"title": "TempEmail - 临时邮箱服务",
+	"button": "创建收件箱",
+	"empty_hint": "向上面的地址发送邮件，就会显示在这里。",
 	"email_list": "邮件列表",
 	"email_empty": "暂无邮件",
 	"email_detail": "邮件详情",
@@ -17,29 +18,25 @@
 		"msg": "密码错误",
 		"submit": "提交",
 		"password_label": "密码",
-		"password_placeholder": "输入密码...",
-		"verifying": "验证中..."
+		"password_placeholder": "输入密码…",
+		"verifying": "验证中…"
 	},
 	"hero": {
-		"badge": "开源",
 		"title_a": "临时邮箱,",
 		"title_b": "无需注册。",
-		"subtitle": "快速、私密、开源的临时邮箱服务。只需要一个能用的临时地址。"
+		"subtitle": "即取即用的临时地址。快速、私密、开源。",
+		"trust": "无需账户。无追踪。24 小时后自动过期。"
 	},
 	"form": {
-		"get_started": "开始使用",
-		"create_address": "创建一个临时邮箱地址",
-		"creating": "创建中...",
-		"verify": "确认我是真人",
-		"verifying": "正在验证...",
-		"verified": "验证成功",
+		"creating": "创建中…",
+		"verifying": "正在验证…",
 		"verify_retry": "验证失败，请点击重试"
 	},
 	"list": {
 		"refresh": "刷新",
 		"refresh_failed": "刷新失败",
 		"no_subject": "(无主题)",
-		"waiting": "等待接收邮件...",
+		"waiting": "等待接收邮件…",
 		"count_one": "封邮件",
 		"count_other": "封邮件",
 		"notification_title": "新邮件",
@@ -48,8 +45,7 @@
 		"notify_enabled": "通知已开启"
 	},
 	"detail": {
-		"back": "返回",
-		"view_details": "查看邮件详情"
+		"back": "返回"
 	},
 	"mailbox": {
 		"copy": "复制邮箱",
@@ -58,12 +54,8 @@
 		"expires_hint": "该地址将在创建 24 小时后自动过期"
 	},
 	"nav": {
-		"tagline": "临时收件箱",
+		"skip": "跳到主要内容",
 		"light_mode": "切换到浅色模式",
 		"dark_mode": "切换到深色模式"
-	},
-	"chip": {
-		"welcome": "欢迎使用 TempEmail",
-		"just_now": "刚刚"
 	}
 }

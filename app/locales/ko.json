@@ -1,7 +1,8 @@
 {
 	"description": "빠르고 개인 정보 보호에 강한 임시 이메일 서비스",
-	"button": "이메일 받기",
-	"card_description": "이것은 임시 이메일입니다. 메일 목록은 10초마다 갱신됩니다",
+	"title": "TempEmail - 임시 이메일 서비스",
+	"button": "받은편지함 만들기",
+	"empty_hint": "위 주소로 이메일을 보내면 여기에 표시됩니다.",
 	"email_list": "메일 목록",
 	"email_empty": "메일 없음",
 	"email_detail": "메일 상세",
@@ -17,29 +18,25 @@
 		"msg": "비밀번호 오류",
 		"submit": "제출",
 		"password_label": "비밀번호",
-		"password_placeholder": "비밀번호를 입력하세요...",
-		"verifying": "확인 중..."
+		"password_placeholder": "비밀번호를 입력하세요…",
+		"verifying": "확인 중…"
 	},
 	"hero": {
-		"badge": "오픈소스",
 		"title_a": "임시 이메일,",
 		"title_b": "가입 없이.",
-		"subtitle": "빠르고 안전하며 오픈소스인 임시 이메일 서비스입니다. 바로 사용 가능한 일회용 주소를 제공합니다."
+		"subtitle": "바로 쓸 수 있는 일회용 주소. 빠르고 안전하며 오픈소스입니다.",
+		"trust": "계정 없이. 추적 없이. 24시간 후 만료."
 	},
 	"form": {
-		"get_started": "시작하기",
-		"create_address": "임시 이메일 주소 만들기",
-		"creating": "만드는 중...",
-		"verify": "저는 로봇이 아닙니다",
-		"verifying": "확인 중...",
-		"verified": "확인 완료",
+		"creating": "만드는 중…",
+		"verifying": "확인 중…",
 		"verify_retry": "인증에 실패했습니다. 다시 시도해 주세요"
 	},
 	"list": {
 		"refresh": "새로고침",
 		"refresh_failed": "새로고침 실패",
 		"no_subject": "(제목 없음)",
-		"waiting": "수신 이메일을 기다리는 중...",
+		"waiting": "수신 이메일을 기다리는 중…",
 		"count_one": "개 이메일",
 		"count_other": "개 이메일",
 		"notification_title": "새 이메일",
@@ -48,8 +45,7 @@
 		"notify_enabled": "알림 켜짐"
 	},
 	"detail": {
-		"back": "뒤로",
-		"view_details": "이메일 상세 보기"
+		"back": "뒤로"
 	},
 	"mailbox": {
 		"copy": "이메일 복사",
@@ -58,12 +54,8 @@
 		"expires_hint": "이 주소는 생성 후 24시간 후 자동 만료됩니다"
 	},
 	"nav": {
-		"tagline": "임시 받은편지함",
+		"skip": "본문으로 건너뛰기",
 		"light_mode": "라이트 모드로 전환",
 		"dark_mode": "다크 모드로 전환"
-	},
-	"chip": {
-		"welcome": "TempEmail에 오신 것을 환영합니다",
-		"just_now": "방금 전"
 	}
 }

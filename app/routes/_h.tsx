@@ -101,6 +101,9 @@ function ThemeToggle({ locale }: { locale: Locale }) {
 		if (mounted) {
 			document.documentElement.classList.toggle("dark", theme === "dark");
 			localStorage.setItem("theme", theme);
+			document
+				.querySelector('meta[name="theme-color"]')
+				?.setAttribute("content", theme === "dark" ? "#121014" : "#f8f6f2");
 		}
 	}, [theme, mounted]);
 
@@ -108,7 +111,9 @@ function ThemeToggle({ locale }: { locale: Locale }) {
 		return (
 			<button
 				type="button"
-				className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/50 bg-background/50"
+				aria-hidden="true"
+				tabIndex={-1}
+				className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-background/60"
 			>
 				<Sun className="h-4 w-4" />
 			</button>
@@ -119,7 +124,7 @@ function ThemeToggle({ locale }: { locale: Locale }) {
 		<button
 			type="button"
 			onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-			className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/50 bg-background/50 text-foreground/70 transition-all hover:bg-background hover:text-foreground"
+			className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-background/60 text-foreground/75 transition-colors duration-200 hover:bg-background hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 			aria-label={
 				theme === "dark" ? locale.nav.light_mode : locale.nav.dark_mode
 			}
@@ -133,7 +138,7 @@ function ThemeToggle({ locale }: { locale: Locale }) {
 	);
 }
 
-function MobileLangMenu({
+function LanguageMenu({
 	currentLang,
 	buildLangHref,
 }: {
@@ -162,13 +167,13 @@ function MobileLangMenu({
 	}, [open]);
 
 	return (
-		<div ref={menuRef} className="relative sm:hidden">
+		<div ref={menuRef} className="relative">
 			<button
 				type="button"
 				onClick={() => setOpen((v) => !v)}
 				aria-expanded={open}
-				aria-haspopup="menu"
-				className="flex h-9 items-center gap-1 rounded-lg border border-border/50 bg-background/50 px-2.5 text-foreground/70 transition-all hover:bg-background hover:text-foreground"
+				aria-controls="language-menu"
+				className="flex h-9 items-center gap-1.5 rounded-lg border border-border/60 bg-background/60 px-2.5 text-xs font-medium text-foreground/75 transition-colors duration-200 hover:bg-background hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 			>
 				<Globe className="h-4 w-4" />
 				<span className="text-xs font-medium">
@@ -183,8 +188,8 @@ function MobileLangMenu({
 			</button>
 			{open && (
 				<div
-					role="menu"
-					className="glass absolute right-0 top-full z-50 mt-2 min-w-[160px] rounded-xl p-1.5 animate-scale-in"
+					id="language-menu"
+					className="panel absolute right-0 top-full z-50 mt-2 min-w-[160px] animate-scale-in rounded-xl p-1.5"
 				>
 					{localeOptions.map((option) => {
 						const isActive = option.code === currentLang;
@@ -193,14 +198,14 @@ function MobileLangMenu({
 								key={option.code}
 								to={buildLangHref(option.code)}
 								prefetch="intent"
-								role="menuitem"
+								aria-current={isActive ? "page" : undefined}
 								title={option.title}
 								onClick={() => {
 									rememberLang(option.code);
 									setOpen(false);
 								}}
 								className={cn(
-									"flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+									"flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
 									isActive
 										? "bg-primary/10 font-medium text-primary"
 										: "text-foreground/80 hover:bg-muted/60",
@@ -241,69 +246,58 @@ export default function HomeLayout() {
 				className="pointer-events-none fixed inset-0 z-0 app-gradient"
 			/>
 
-			<header className="z-50 w-full shrink-0 glass header-glass">
-				<div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-					<Link to="/" className="group flex items-center gap-3">
+			<a
+				href="#main-content"
+				className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-foreground focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring"
+			>
+				{locale.nav.skip}
+			</a>
+
+			<header className="z-50 w-full shrink-0 px-4 pt-4 sm:px-6 lg:px-8">
+				<div className="header-bar mx-auto flex h-14 max-w-6xl items-center justify-between rounded-2xl border border-border/70 px-3 shadow-sm sm:px-4">
+					<Link
+						to="/"
+						className="group flex items-center gap-2.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+					>
 						<img
-							src="/favicon.png?v=9"
-							alt="TempEmail logo"
-							className="h-10 w-10 transition-transform duration-300 group-hover:scale-105"
+							src="/apple-touch-icon.png"
+							alt=""
+							width={36}
+							height={36}
+							className="h-9 w-9 transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
 						/>
-						<div className="flex flex-col">
-							<span className="text-lg font-bold tracking-tight text-foreground">
-								TempEmail
-							</span>
-							<span className="text-[10px] font-medium text-muted-foreground">
-								{locale.nav.tagline}
-							</span>
-						</div>
+						<span
+							translate="no"
+							className="text-lg font-bold tracking-tight text-foreground"
+						>
+							TempEmail
+						</span>
 					</Link>
 
-					<div className="flex items-center gap-2">
-						<nav className="hidden sm:flex items-center rounded-lg border border-border/50 bg-background/50 p-1">
-							{localeOptions.map((locale) => {
-								const isActive = locale.code === currentLang;
-								return (
-									<Link
-										key={locale.code}
-										to={buildLangHref(locale.code)}
-										prefetch="intent"
-										aria-current={isActive ? "page" : undefined}
-										title={locale.title}
-										onClick={() => rememberLang(locale.code)}
-										className={cn(
-											"px-2.5 py-1 text-xs font-medium rounded-md transition-all",
-											isActive
-												? "bg-primary text-primary-foreground shadow-sm"
-												: "text-muted-foreground hover:text-foreground hover:bg-background",
-										)}
-									>
-										{locale.label}
-									</Link>
-								);
-							})}
-						</nav>
-
-						<div className="flex items-center gap-2">
-							<MobileLangMenu
-								currentLang={currentLang}
-								buildLangHref={buildLangHref}
-							/>
-							<ThemeToggle locale={locale} />
-							<Link
-								to="https://github.com/OldWooood/smail"
-								target="_blank"
-								rel="noreferrer"
-								className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/50 bg-background/50 text-foreground/70 transition-all hover:bg-background hover:text-foreground"
-							>
-								<GitHubIcon className="h-4 w-4" />
-							</Link>
-						</div>
+					<div className="flex items-center gap-1.5">
+						<LanguageMenu
+							currentLang={currentLang}
+							buildLangHref={buildLangHref}
+						/>
+						<ThemeToggle locale={locale} />
+						<Link
+							to="https://github.com/OldWooood/smail"
+							target="_blank"
+							rel="noreferrer"
+							aria-label="GitHub repository"
+							className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/60 bg-background/60 text-foreground/75 transition-colors duration-200 hover:bg-background hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+						>
+							<GitHubIcon className="h-4 w-4" />
+						</Link>
 					</div>
 				</div>
 			</header>
 
-			<main className="relative z-10 flex min-h-0 flex-1 flex-col">
+			<main
+				id="main-content"
+				tabIndex={-1}
+				className="relative z-10 flex min-h-0 flex-1 flex-col focus:outline-none"
+			>
 				<Outlet />
 			</main>
 		</div>

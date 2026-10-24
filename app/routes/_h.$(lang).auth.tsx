@@ -73,7 +73,7 @@ export default function Auth() {
 							/>
 						</div>
 						{actionData?.error && (
-							<p className="text-sm text-destructive text-center">
+							<p className="text-sm text-destructive-text text-center">
 								{locale.auth.msg}
 							</p>
 						)}

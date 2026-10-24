@@ -1,5 +1,4 @@
-import { ArrowLeft, Clock, Mail, User } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, Clock, User } from "lucide-react";
 import type { LoaderFunctionArgs } from "react-router";
 import {
 	data,
@@ -55,24 +54,6 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 	);
 }
 
-function useDarkMode() {
-	const [isDark, setIsDark] = useState(false);
-
-	useEffect(() => {
-		const update = () =>
-			setIsDark(document.documentElement.classList.contains("dark"));
-		update();
-		const observer = new MutationObserver(update);
-		observer.observe(document.documentElement, {
-			attributes: true,
-			attributeFilter: ["class"],
-		});
-		return () => observer.disconnect();
-	}, []);
-
-	return isDark;
-}
-
 export function ErrorBoundary() {
 	const error = useRouteError();
 	const status = isRouteErrorResponse(error) ? error.status : 500;
@@ -85,8 +66,8 @@ export function ErrorBoundary() {
 				? "This email no longer exists."
 				: "Failed to load this email.";
 	return (
-		<div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-			<div className="glass mx-auto max-w-md space-y-4 rounded-2xl p-6 text-center">
+		<div className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
+			<div className="panel mx-auto max-w-md space-y-4 rounded-2xl p-6 text-center">
 				<h1 className="text-lg font-semibold text-foreground">{title}</h1>
 				<p className="text-sm text-muted-foreground">{message}</p>
 				<Button asChild variant="outline">
@@ -102,76 +83,71 @@ export function ErrorBoundary() {
 
 export default function EmailDetail() {
 	const { locale, email } = useLoaderData<typeof loader>();
-	const isDark = useDarkMode();
-
-	// Body loads via `src` (separate cached resource) instead of inlining
-	// megabytes of HTML into the parent document / hydration payload.
-	const bodySrc = useMemo(
-		() => `/api/emails/${email.id}/body?theme=${isDark ? "dark" : "light"}`,
-		[email.id, isDark],
-	);
+	const senderLabel =
+		email.from?.name || email.senderAddress || email.subject || "?";
+	const senderInitial = [...senderLabel.trim()][0]?.toUpperCase() || "@";
+	// The email canvas is always light so arbitrary HTML stays readable.
+	const bodySrc = `/api/emails/${email.id}/body`;
 
 	return (
-		<div className="mx-auto flex w-full max-w-7xl min-h-0 flex-1 flex-col px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-			<div className="flex min-h-0 flex-1 flex-col space-y-4 sm:space-y-6">
-				<div className="flex shrink-0 items-center gap-4">
+		<div className="mx-auto flex w-full max-w-5xl min-h-0 flex-1 flex-col px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
+			<div className="flex min-h-0 flex-1 flex-col gap-4">
+				<div className="flex shrink-0 items-center gap-2">
 					<Button
 						asChild
-						variant="outline"
-						size="icon"
-						aria-label={locale.detail.back}
-						className="shrink-0"
+						variant="ghost"
+						size="sm"
+						className="-ml-2 gap-1.5 text-muted-foreground hover:text-foreground"
 					>
 						<Link prefetch="viewport" viewTransition to="/">
 							<ArrowLeft className="h-4 w-4" />
+							<span>{locale.detail.back}</span>
 						</Link>
 					</Button>
-					<div>
-						<h1 className="text-xl font-semibold tracking-tight text-foreground">
-							{locale.email_detail}
-						</h1>
-						<p className="text-sm text-muted-foreground">
-							{locale.detail.view_details}
-						</p>
-					</div>
+					<span className="text-xs text-muted-foreground/60">/</span>
+					<span className="truncate text-xs font-medium text-muted-foreground">
+						{locale.email_detail}
+					</span>
 				</div>
 
-				<div className="glass flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl">
-					<div className="shrink-0 space-y-4 border-b border-glass-border px-5 py-4">
-						<div className="flex items-center gap-3">
-							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
-								<Mail className="h-5 w-5" />
+				<div className="panel flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl">
+					<div className="shrink-0 border-b border-border px-5 py-5 sm:px-6">
+						<div className="flex items-start gap-3">
+							<div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-base font-semibold uppercase text-primary ring-1 ring-primary/20">
+								{senderInitial}
 							</div>
-							<div className="flex-1 min-w-0">
-								<h2 className="text-base font-semibold leading-tight text-foreground">
+							<div className="min-w-0 flex-1">
+								<h1 className="text-lg font-semibold leading-tight text-foreground sm:text-xl">
 									{email.subject || locale.list.no_subject}
-								</h2>
-							</div>
-						</div>
-
-						<div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
-							{email.senderAddress && (
-								<div className="flex items-center gap-2 text-muted-foreground">
-									<User className="h-4 w-4" />
-									<span className="font-mono font-medium text-foreground">
-										{email.senderAddress.toLowerCase()}
+								</h1>
+								<div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground sm:text-sm">
+									{email.senderAddress && (
+										<span className="flex min-w-0 items-center gap-1.5">
+											<User className="h-3.5 w-3.5 shrink-0" />
+											<span
+												translate="no"
+												className="truncate font-mono text-foreground/80"
+											>
+												{email.senderAddress.toLowerCase()}
+											</span>
+										</span>
+									)}
+									<span className="flex items-center gap-1.5">
+										<Clock className="h-3.5 w-3.5" />
+										<span className="font-mono">{email.createdAt}</span>
 									</span>
 								</div>
-							)}
-							<div className="flex items-center gap-2 text-muted-foreground">
-								<Clock className="h-4 w-4" />
-								<span className="font-mono">{email.createdAt}</span>
 							</div>
 						</div>
 					</div>
 
-					<div className="min-h-0 flex-1 bg-background">
+					<div className="min-h-0 flex-1 bg-[#fdfdfc]">
 						<iframe
 							key={bodySrc}
 							title={email.subject || "Email Content"}
 							src={bodySrc}
-							className="h-full w-full bg-background"
-							loading="lazy"
+							className="h-full w-full bg-[#fdfdfc]"
+							loading="eager"
 							referrerPolicy="no-referrer"
 							sandbox="allow-popups allow-popups-to-escape-sandbox"
 						/>

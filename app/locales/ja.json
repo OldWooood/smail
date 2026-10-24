@@ -1,7 +1,8 @@
 {
 	"description": "高速でプライベートな一時メールサービス",
-	"button": "メールを取得",
-	"card_description": "これはあなたの一時メールです。メール一覧は10秒ごとに更新されます",
+	"title": "TempEmail - 一時メールサービス",
+	"button": "受信トレイを作成",
+	"empty_hint": "上のアドレスにメールを送ると、ここに表示されます。",
 	"email_list": "メール一覧",
 	"email_empty": "メールはありません",
 	"email_detail": "メール詳細",
@@ -17,29 +18,25 @@
 		"msg": "パスワードが正しくありません",
 		"submit": "送信",
 		"password_label": "パスワード",
-		"password_placeholder": "パスワードを入力...",
-		"verifying": "確認中..."
+		"password_placeholder": "パスワードを入力…",
+		"verifying": "確認中…"
 	},
 	"hero": {
-		"badge": "オープンソース",
 		"title_a": "仮想メールアドレス、",
 		"title_b": "登録不要。",
-		"subtitle": "高速・プライベート・オープンソースの一時メールサービス。使い捨てアドレスがすぐに使えます。"
+		"subtitle": "すぐに使える使い捨てアドレス。高速、プライベート、オープンソース。",
+		"trust": "アカウント不要。トラッキングなし。24時間で自動失効。"
 	},
 	"form": {
-		"get_started": "はじめる",
-		"create_address": "使い捨てメールアドレスを作成",
-		"creating": "作成中...",
-		"verify": "私はロボットではありません",
-		"verifying": "確認中...",
-		"verified": "確認完了",
+		"creating": "作成中…",
+		"verifying": "確認中…",
 		"verify_retry": "認証に失敗しました。もう一度お試しください"
 	},
 	"list": {
 		"refresh": "更新",
 		"refresh_failed": "更新に失敗しました",
 		"no_subject": "(件名なし)",
-		"waiting": "メールの受信を待っています...",
+		"waiting": "メールの受信を待っています…",
 		"count_one": "通のメール",
 		"count_other": "通のメール",
 		"notification_title": "新しいメール",
@@ -48,8 +45,7 @@
 		"notify_enabled": "通知が有効になりました"
 	},
 	"detail": {
-		"back": "戻る",
-		"view_details": "メールの詳細を見る"
+		"back": "戻る"
 	},
 	"mailbox": {
 		"copy": "メールをコピー",
@@ -58,12 +54,8 @@
 		"expires_hint": "このアドレスは作成から24時間後に自動的に失効します"
 	},
 	"nav": {
-		"tagline": "一時受信トレイ",
+		"skip": "コンテンツへスキップ",
 		"light_mode": "ライトモードに切り替え",
 		"dark_mode": "ダークモードに切り替え"
-	},
-	"chip": {
-		"welcome": "TempEmail へようこそ",
-		"just_now": "たった今"
 	}
 }

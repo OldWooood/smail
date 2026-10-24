@@ -4,14 +4,14 @@ import * as React from "react";
 import { cn } from "~/lib/utils";
 
 const buttonVariants = cva(
-	"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]",
+	"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-[color,background-color,border-color,box-shadow,transform] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100",
 	{
 		variants: {
 			variant: {
 				default:
-					"bg-primary text-primary-foreground shadow-[0_8px_24px_-8px_hsl(var(--primary)/0.5)] hover:bg-primary/90 hover:shadow-[0_12px_32px_-8px_hsl(var(--primary)/0.6)] dark:shadow-[0_8px_32px_-8px_hsl(var(--primary)/0.45)] dark:hover:shadow-[0_12px_40px_-8px_hsl(var(--primary)/0.55)]",
+					"bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md",
 				destructive:
-					"bg-destructive text-destructive-foreground shadow-lg shadow-destructive/25 hover:bg-destructive/90 hover:shadow-xl hover:shadow-destructive/30",
+					"bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 hover:shadow-md",
 				outline:
 					"border border-input bg-background hover:bg-accent hover:text-accent-foreground",
 				secondary:

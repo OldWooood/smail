@@ -67,7 +67,10 @@ export function CopyButton({
 			variant={variant}
 			size={size}
 			onClick={copy}
-			className={cn("gap-2 transition-all duration-200", className)}
+			className={cn(
+				"gap-2 transition-[color,background-color,box-shadow,transform] duration-200",
+				className,
+			)}
 			aria-live="polite"
 		>
 			{status === "copied" ? (

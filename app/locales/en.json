@@ -1,7 +1,8 @@
 {
 	"description": "A fast and private temporary email service",
-	"button": "Get Email",
-	"card_description": "This is your temporary email, the email list refreshes every 10 seconds",
+	"title": "TempEmail - Temporary Email Service",
+	"button": "Create inbox",
+	"empty_hint": "Send an email to the address above and it will appear here.",
 	"email_list": "Email List",
 	"email_empty": "No email",
 	"email_detail": "Email Detail",
@@ -17,29 +18,25 @@
 		"msg": "Password error",
 		"submit": "Submit",
 		"password_label": "Password",
-		"password_placeholder": "Enter password...",
-		"verifying": "Verifying..."
+		"password_placeholder": "Enter password…",
+		"verifying": "Verifying…"
 	},
 	"hero": {
-		"badge": "Open Source",
 		"title_a": "Temporary email,",
 		"title_b": "without the sign-up.",
-		"subtitle": "A fast, private, and open-source temporary email service. Just disposable addresses that work."
+		"subtitle": "Disposable addresses that work. Fast, private, and open source.",
+		"trust": "No account. No tracking. Expires in 24 hours."
 	},
 	"form": {
-		"get_started": "Get Started",
-		"create_address": "Create a temporary email address",
-		"creating": "Creating...",
-		"verify": "Verify you are human",
-		"verifying": "Verifying...",
-		"verified": "Verified",
+		"creating": "Creating…",
+		"verifying": "Verifying…",
 		"verify_retry": "Verification failed, click to retry"
 	},
 	"list": {
 		"refresh": "Refresh",
 		"refresh_failed": "Failed to refresh",
 		"no_subject": "(No Subject)",
-		"waiting": "Waiting for incoming emails...",
+		"waiting": "Waiting for incoming emails…",
 		"count_one": "email",
 		"count_other": "emails",
 		"notification_title": "New Email",
@@ -48,8 +45,7 @@
 		"notify_enabled": "Notifications enabled"
 	},
 	"detail": {
-		"back": "Back",
-		"view_details": "View email details"
+		"back": "Back"
 	},
 	"mailbox": {
 		"copy": "Copy Email",
@@ -58,12 +54,8 @@
 		"expires_hint": "This address expires automatically 24 hours after creation"
 	},
 	"nav": {
-		"tagline": "Temporary Inbox",
+		"skip": "Skip to content",
 		"light_mode": "Switch to light mode",
 		"dark_mode": "Switch to dark mode"
-	},
-	"chip": {
-		"welcome": "Welcome to TempEmail",
-		"just_now": "just now"
 	}
 }

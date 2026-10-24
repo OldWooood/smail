@@ -33,8 +33,22 @@ import { CopyButton } from "~/components/copy-button";
 import { EmailList } from "~/components/email-list";
 import { HeroSection } from "~/components/marketing/hero-section";
 import { Button } from "~/components/ui/button";
+import { isSupportedLang, SUPPORTED_LANGS } from "~/lib/lang";
 import { cn } from "~/lib/utils";
 import { getLocaleData, type Locale } from "~/locales/locale";
+
+const OG_LOCALES: Record<string, string> = {
+	en: "en_US",
+	"zh-CN": "zh_CN",
+	es: "es_ES",
+	fr: "fr_FR",
+	ja: "ja_JP",
+	ko: "ko_KR",
+};
+
+function languagePath(lang: string) {
+	return lang === "en" ? "/" : `/${lang}`;
+}
 
 const MAILBOX_TTL_SECONDS = 60 * 60 * 24;
 
@@ -98,17 +112,67 @@ export const links: LinksFunction = () => [
 	{ rel: "dns-prefetch", href: "https://challenges.cloudflare.com" },
 ];
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => [
-	{ title: "TempEmail - Temporary Email Service" },
-	{
-		name: "description",
-		content: data?.locale.description,
-	},
-];
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+	if (!data) return [{ title: "TempEmail" }];
+
+	const { locale, lang, origin } = data;
+	const canonical = `${origin}${languagePath(lang)}`;
+	const alternates = SUPPORTED_LANGS.map((code) => ({
+		tagName: "link" as const,
+		rel: "alternate",
+		hrefLang: code,
+		href: `${origin}${languagePath(code)}`,
+	}));
+
+	return [
+		{ title: locale.title },
+		{ name: "description", content: locale.description },
+		{ tagName: "link", rel: "canonical", href: canonical },
+		...alternates,
+		{
+			tagName: "link",
+			rel: "alternate",
+			hrefLang: "x-default",
+			href: `${origin}/`,
+		},
+		{ property: "og:type", content: "website" },
+		{ property: "og:site_name", content: "TempEmail" },
+		{ property: "og:title", content: locale.title },
+		{ property: "og:description", content: locale.description },
+		{ property: "og:url", content: canonical },
+		{ property: "og:image", content: `${origin}/og.png` },
+		{ property: "og:image:width", content: "1200" },
+		{ property: "og:image:height", content: "630" },
+		{ property: "og:image:alt", content: locale.title },
+		{ property: "og:locale", content: OG_LOCALES[lang] ?? "en_US" },
+		{ name: "twitter:card", content: "summary_large_image" },
+		{ name: "twitter:title", content: locale.title },
+		{ name: "twitter:description", content: locale.description },
+		{ name: "twitter:image", content: `${origin}/og.png` },
+		{
+			"script:ld+json": {
+				"@context": "https://schema.org",
+				"@type": "WebApplication",
+				name: "TempEmail",
+				url: canonical,
+				description: locale.description,
+				applicationCategory: "UtilitiesApplication",
+				operatingSystem: "Any",
+				offers: {
+					"@type": "Offer",
+					price: "0",
+					priceCurrency: "USD",
+				},
+				inLanguage: lang,
+			},
+		},
+	];
+};
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
 	const { getSession } = sessionWrapper(context.cloudflare.env);
-	const lang = params.lang || "en";
+	const lang = params.lang && isSupportedLang(params.lang) ? params.lang : "en";
+	const origin = new URL(request.url).origin;
 	const [session, locale] = await Promise.all([
 		getSession(request.headers.get("Cookie")),
 		getLocaleData(lang),
@@ -128,15 +192,13 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 		emails = await listEmails(db, email, lang);
 	}
 
-	const sampleAddress = `${createRandomLocalPart()}@${domain}`;
-
 	return {
 		lang,
 		locale,
+		origin,
 		domain,
 		email,
 		emails,
-		sampleAddress,
 		turnstileSiteKey: context.cloudflare.env.TURNSTILE_SITE_KEY,
 	};
 }
@@ -261,7 +323,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 	return null;
 }
 
-function MailboxCard({
+function MailboxBar({
 	locale,
 	displayEmail,
 }: {
@@ -305,38 +367,40 @@ function MailboxCard({
 	};
 
 	return (
-		<div className="order-first min-h-0 shrink-0 lg:order-none lg:self-start">
-			<div className="glass flex flex-row items-center gap-2 rounded-2xl p-3 sm:p-4 lg:flex-col lg:items-stretch lg:gap-0 lg:space-y-5 lg:p-5">
-				<div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
-					<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20 sm:h-12 sm:w-12">
-						<span className="text-base font-bold sm:text-lg">@</span>
+		<div className="panel shrink-0 rounded-2xl px-4 py-3 sm:px-5 sm:py-4">
+			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+				<div className="flex min-w-0 items-center gap-3">
+					<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
+						<span className="text-base font-bold">@</span>
 					</div>
-					<div className="flex-1 min-w-0">
+					<div className="min-w-0 flex-1">
 						<button
 							type="button"
 							onClick={() => setExpanded((v) => !v)}
 							aria-expanded={expanded}
 							title={displayEmail}
+							translate="no"
 							className={cn(
-								"block w-full text-left font-mono text-xs font-semibold text-foreground sm:text-base",
+								"block max-w-full rounded-md text-left font-mono text-sm font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:text-base",
 								expanded ? "break-all whitespace-normal" : "truncate",
 							)}
 						>
 							{displayEmail}
 						</button>
-						<p className="mt-1 hidden items-start gap-1.5 text-xs text-muted-foreground lg:flex">
+						<p className="mt-0.5 flex items-start gap-1.5 text-xs text-muted-foreground">
 							<Clock4 className="mt-0.5 h-3 w-3 shrink-0" />
 							{locale.mailbox.expires_hint}
 						</p>
 					</div>
 				</div>
-				<div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+				<div className="flex shrink-0 flex-wrap items-center gap-2">
 					<CopyButton
 						content={displayEmail || ""}
 						variant="default"
-						className="px-2.5 sm:px-4"
+						size="sm"
+						className="flex-1 justify-center sm:flex-none"
 					>
-						<span className="hidden md:inline">{locale.mailbox.copy}</span>
+						{locale.mailbox.copy}
 					</CopyButton>
 					<Form method="DELETE" viewTransition ref={deleteFormRef}>
 						<Button
@@ -353,7 +417,7 @@ function MailboxCard({
 							onClick={handleDeleteClick}
 							disabled={isDeleting}
 							className={cn(
-								"transition-all duration-200",
+								"transition-shadow duration-200",
 								confirmDelete &&
 									!isDeleting &&
 									"ring-2 ring-destructive/30 ring-offset-2 ring-offset-background",
@@ -371,9 +435,9 @@ function MailboxCard({
 							)}
 							<span
 								className={cn(
-									"overflow-hidden whitespace-nowrap text-[11px] font-medium transition-all duration-200 ease-out motion-reduce:transition-none",
+									"overflow-hidden whitespace-nowrap text-[11px] font-medium transition-[max-width,margin,opacity] duration-200 ease-out motion-reduce:transition-none",
 									confirmDelete && !isDeleting
-										? "ml-0 max-w-[140px] opacity-100"
+										? "ml-0 max-w-[180px] opacity-100"
 										: "-ml-2 max-w-0 opacity-0",
 								)}
 							>
@@ -388,15 +452,8 @@ function MailboxCard({
 }
 
 export default function Index() {
-	const {
-		lang,
-		locale,
-		turnstileSiteKey,
-		email,
-		emails,
-		domain,
-		sampleAddress,
-	} = useLoaderData<typeof loader>();
+	const { lang, locale, turnstileSiteKey, email, emails, domain } =
+		useLoaderData<typeof loader>();
 	const actionData = useActionData<ActionData>();
 	const navigation = useNavigation();
 	const displayEmail = email ? email.toLowerCase() : null;
@@ -407,25 +464,23 @@ export default function Index() {
 		<>
 			{email && displayEmail ? (
 				<section className="flex min-h-0 flex-1 flex-col overflow-hidden py-4 sm:py-6">
-					<div className="mx-auto flex w-full max-w-7xl min-h-0 flex-1 flex-col px-4 sm:px-6 lg:px-8">
-						<div className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_400px] lg:grid-rows-none lg:gap-8">
-							<EmailList
-								initialEmails={emails}
-								locale={locale}
-								lang={lang}
-								mailbox={displayEmail}
-							/>
-							<MailboxCard
-								key={displayEmail}
-								locale={locale}
-								displayEmail={displayEmail}
-							/>
-						</div>
+					<div className="mx-auto flex w-full max-w-6xl min-h-0 flex-1 flex-col gap-4 px-4 sm:px-6 lg:px-8">
+						<MailboxBar
+							key={displayEmail}
+							locale={locale}
+							displayEmail={displayEmail}
+						/>
+						<EmailList
+							initialEmails={emails}
+							locale={locale}
+							lang={lang}
+							mailbox={displayEmail}
+						/>
 					</div>
 				</section>
 			) : (
-				<HeroSection sampleAddress={sampleAddress} locale={locale}>
-					<div className="glass rounded-2xl p-6">
+				<HeroSection locale={locale}>
+					<div>
 						<AuthForm
 							turnstileSiteKey={turnstileSiteKey}
 							lang={lang}
@@ -450,6 +505,9 @@ export default function Index() {
 									: undefined
 							}
 						/>
+						<p className="mt-5 text-center text-xs leading-relaxed text-muted-foreground">
+							{locale.hero.trust}
+						</p>
 					</div>
 				</HeroSection>
 			)}

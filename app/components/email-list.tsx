@@ -1,4 +1,4 @@
-import { Bell, Inbox, Mail, RefreshCw } from "lucide-react";
+import { Bell, Inbox, RefreshCw } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { NavLink } from "react-router";
 import { Button } from "~/components/ui/button";
@@ -26,11 +26,11 @@ const SEEN_KEY_PREFIX = "smail_seen_emails:";
 type NotificationState = "unsupported" | "default" | "granted" | "denied";
 
 const AVATAR_STYLES = [
-	"bg-chart-1/15 text-chart-1",
-	"bg-chart-2/15 text-chart-2",
+	"bg-primary/10 text-primary",
 	"bg-chart-3/15 text-chart-3",
 	"bg-chart-4/15 text-chart-4",
-	"bg-chart-5/15 text-chart-5",
+	"bg-chart-2/15 text-chart-2",
+	"bg-muted text-muted-foreground",
 ];
 
 function avatarStyle(seed: string) {
@@ -95,7 +95,7 @@ const EmailListItem = memo(function EmailListItem({
 			to={detailHref(email.id)}
 			onClick={() => onSelect(email.id)}
 			className={cn(
-				"group relative flex items-center gap-3 px-4 py-3.5 transition-all duration-200",
+				"group relative flex items-center gap-3 px-4 py-3.5 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
 				"hover:bg-muted/40",
 				isUnread && "animate-slide-up",
 			)}
@@ -344,27 +344,22 @@ export function EmailList({
 	);
 
 	return (
-		<div className="flex h-full w-full min-h-0 flex-col gap-4">
-			<div className="flex shrink-0 items-center justify-between">
-				<div className="flex items-center gap-3">
-					<div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
-						<Mail className="h-5 w-5" />
-					</div>
-					<div className="flex flex-col">
-						<span className="text-sm font-semibold text-foreground">
-							{locale.email_list}
-						</span>
-						<span className="font-mono text-xs text-muted-foreground">
-							{emails.length}{" "}
-							{emails.length === 1
-								? locale.list.count_one
-								: locale.list.count_other}
-						</span>
-					</div>
+		<div className="flex min-h-0 w-full flex-1 flex-col gap-3">
+			<div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
+				<div className="flex items-baseline gap-2">
+					<h1 className="text-base font-semibold text-foreground">
+						{locale.email_list}
+					</h1>
+					<span className="rounded-full bg-muted px-2 py-0.5 font-mono text-[11px] text-muted-foreground">
+						{emails.length}{" "}
+						{emails.length === 1
+							? locale.list.count_one
+							: locale.list.count_other}
+					</span>
 				</div>
 				<div className="flex items-center gap-2">
 					{error && (
-						<span className="text-xs text-destructive hidden sm:inline">
+						<span className="text-xs text-destructive-text hidden sm:inline">
 							{locale.list.refresh_failed}
 						</span>
 					)}
@@ -389,6 +384,8 @@ export function EmailList({
 						variant="outline"
 						onClick={fetchManual}
 						disabled={isManualRefreshing}
+						aria-label={locale.list.refresh}
+						aria-busy={isManualRefreshing}
 						className="gap-2"
 					>
 						<RefreshCw
@@ -403,19 +400,22 @@ export function EmailList({
 
 			<div
 				aria-live="polite"
-				className="glass flex-1 min-h-0 overflow-hidden rounded-2xl"
+				className="panel flex-1 min-h-0 overflow-hidden rounded-2xl"
 			>
 				<ScrollArea className="h-full custom-scrollbar">
 					{emails.length === 0 ? (
-						<div className="flex flex-col items-center justify-center px-4 py-16">
-							<div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20">
+						<div className="flex h-full min-h-[320px] flex-col items-center justify-center px-6 py-16 text-center">
+							<div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20">
 								<Inbox className="h-8 w-8" />
 							</div>
-							<p className="text-sm font-medium text-muted-foreground">
+							<p className="text-base font-semibold text-foreground">
 								{locale.email_empty}
 							</p>
-							<p className="mt-1 text-xs text-muted-foreground/60">
+							<p className="mt-1 max-w-xs text-sm text-muted-foreground">
 								{locale.list.waiting}
+							</p>
+							<p className="mt-3 max-w-sm text-xs leading-relaxed text-muted-foreground/80">
+								{locale.empty_hint}
 							</p>
 						</div>
 					) : (

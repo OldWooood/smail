@@ -39,7 +39,7 @@ Cloudflare Workers in minutes.
 
 1. Open [email.deatrg.top](https://email.deatrg.top/)
 2. Type a custom username, or leave it blank for a random address
-3. Click **Get Email** and start using it right away
+3. Click **Create inbox** and start using it right away
 4. The inbox refreshes automatically; the mailbox expires after 24 hours
 
 ## Self-host

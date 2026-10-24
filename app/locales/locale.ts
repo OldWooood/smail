@@ -1,7 +1,8 @@
 export interface Locale {
 	description: string;
+	title: string;
 	button: string;
-	card_description: string;
+	empty_hint: string;
 	email_list: string;
 	email_empty: string;
 	email_detail: string;
@@ -21,18 +22,14 @@ export interface Locale {
 		verifying: string;
 	};
 	hero: {
-		badge: string;
 		title_a: string;
 		title_b: string;
 		subtitle: string;
+		trust: string;
 	};
 	form: {
-		get_started: string;
-		create_address: string;
 		creating: string;
-		verify: string;
 		verifying: string;
-		verified: string;
 		verify_retry: string;
 	};
 	list: {
@@ -49,7 +46,6 @@ export interface Locale {
 	};
 	detail: {
 		back: string;
-		view_details: string;
 	};
 	mailbox: {
 		copy: string;
@@ -58,13 +54,9 @@ export interface Locale {
 		expires_hint: string;
 	};
 	nav: {
-		tagline: string;
+		skip: string;
 		light_mode: string;
 		dark_mode: string;
-	};
-	chip: {
-		welcome: string;
-		just_now: string;
 	};
 }
 
