@@ -453,9 +453,19 @@ function MailboxSplitView({
 		setSelectedEmail(nextEmail);
 	}, []);
 
+	// Language switches revalidate the loader with newly formatted dates.
+	// Keep the open message selected while swapping in the translated row.
+	useEffect(() => {
+		setSelectedEmail((current) => {
+			if (!current) return current;
+			return emails.find((email) => email.id === current.id) ?? current;
+		});
+	}, [emails]);
+
 	return (
 		<div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-[380px_minmax(0,1fr)]">
 			<EmailList
+				key={lang}
 				initialEmails={emails}
 				locale={locale}
 				lang={lang}

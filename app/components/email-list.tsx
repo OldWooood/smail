@@ -184,79 +184,85 @@ export function EmailList({
 
 	const storageKey = seenKey(mailbox);
 
-	const fetchEmails = useCallback(async (opts?: { silent?: boolean }) => {
-		const silent = opts?.silent ?? false;
-		if (typeof navigator !== "undefined" && !navigator.onLine) return;
-		if (abortControllerRef.current) {
-			abortControllerRef.current.abort();
-		}
-
-		abortControllerRef.current = new AbortController();
-		if (!silent) {
-			setIsManualRefreshing(true);
-			setError(null);
-		}
-
-		try {
-			const response = await fetch("/api/emails", {
-				signal: abortControllerRef.current.signal,
-				headers: etagRef.current
-					? { "If-None-Match": etagRef.current }
-					: undefined,
-			});
-
-			if (response.status === 304) {
-				return;
+	const fetchEmails = useCallback(
+		async (opts?: { silent?: boolean }) => {
+			const silent = opts?.silent ?? false;
+			if (typeof navigator !== "undefined" && !navigator.onLine) return;
+			if (abortControllerRef.current) {
+				abortControllerRef.current.abort();
 			}
 
-			if (response.status === 401) {
-				// Mailbox expired or was deleted from another tab. The response
-				// also clears the stale session cookie, so a reload lands on the
-				// create-mailbox screen. Guard against a reload loop if cookies
-				// are blocked.
-				const key = "smail_session_expired_reload";
-				let lastReload = 0;
-				try {
-					lastReload = Number(sessionStorage.getItem(key) || 0);
-				} catch {
-					// storage unavailable
+			abortControllerRef.current = new AbortController();
+			if (!silent) {
+				setIsManualRefreshing(true);
+				setError(null);
+			}
+
+			try {
+				const response = await fetch(
+					`/api/emails?lang=${encodeURIComponent(lang)}`,
+					{
+						signal: abortControllerRef.current.signal,
+						headers: etagRef.current
+							? { "If-None-Match": etagRef.current }
+							: undefined,
+					},
+				);
+
+				if (response.status === 304) {
+					return;
 				}
-				if (Date.now() - lastReload > 10_000) {
+
+				if (response.status === 401) {
+					// Mailbox expired or was deleted from another tab. The response
+					// also clears the stale session cookie, so a reload lands on the
+					// create-mailbox screen. Guard against a reload loop if cookies
+					// are blocked.
+					const key = "smail_session_expired_reload";
+					let lastReload = 0;
 					try {
-						sessionStorage.setItem(key, String(Date.now()));
+						lastReload = Number(sessionStorage.getItem(key) || 0);
 					} catch {
 						// storage unavailable
 					}
-					window.location.reload();
-				} else {
-					setError("Mailbox expired");
+					if (Date.now() - lastReload > 10_000) {
+						try {
+							sessionStorage.setItem(key, String(Date.now()));
+						} catch {
+							// storage unavailable
+						}
+						window.location.reload();
+					} else {
+						setError("Mailbox expired");
+					}
+					return;
 				}
-				return;
-			}
 
-			if (!response.ok) {
-				throw new Error("Failed to fetch emails");
-			}
+				if (!response.ok) {
+					throw new Error("Failed to fetch emails");
+				}
 
-			const newEtag = response.headers.get("ETag");
-			if (newEtag) {
-				etagRef.current = newEtag;
-			}
+				const newEtag = response.headers.get("ETag");
+				if (newEtag) {
+					etagRef.current = newEtag;
+				}
 
-			const data = (await response.json()) as { emails: Email[] };
-			setEmails((prev) =>
-				emailsChanged(prev, data.emails) ? data.emails : prev,
-			);
-			if (!silent) setError(null);
-		} catch (err) {
-			if (err instanceof Error && err.name !== "AbortError") {
-				if (!silent) setError(err.message);
-				console.error("Failed to fetch emails:", err);
+				const data = (await response.json()) as { emails: Email[] };
+				setEmails((prev) =>
+					emailsChanged(prev, data.emails) ? data.emails : prev,
+				);
+				if (!silent) setError(null);
+			} catch (err) {
+				if (err instanceof Error && err.name !== "AbortError") {
+					if (!silent) setError(err.message);
+					console.error("Failed to fetch emails:", err);
+				}
+			} finally {
+				if (!silent) setIsManualRefreshing(false);
 			}
-		} finally {
-			if (!silent) setIsManualRefreshing(false);
-		}
-	}, []);
+		},
+		[lang],
+	);
 
 	const fetchSilent = useCallback(
 		() => fetchEmails({ silent: true }),
