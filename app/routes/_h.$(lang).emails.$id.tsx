@@ -51,7 +51,12 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 	const locale = await getLocaleData(lang);
 	return data(
 		{ locale, email: newEmail },
-		{ headers: { "Cache-Control": "private, max-age=60" } },
+		{
+			headers: {
+				"Cache-Control": "private, no-store",
+				Vary: "Cookie",
+			},
+		},
 	);
 }
 

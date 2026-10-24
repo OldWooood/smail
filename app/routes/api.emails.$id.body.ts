@@ -12,7 +12,8 @@ function escapeHtml(text: string) {
 }
 
 // Serves the email body as a standalone document so the detail page shell
-// stays small. Emails are immutable, so the response is privately cacheable.
+// stays small. The body is scoped to the current mailbox session and must not
+// be reused after the user deletes or switches mailboxes.
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
 	const id = params.id as string;
 	const { getSession } = sessionWrapper(context.cloudflare.env);
@@ -20,14 +21,6 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 	const messageTo = session.data.email;
 	if (!messageTo) {
 		throw new Response("Unauthorized", { status: 401 });
-	}
-
-	const etag = `"email-${id}"`;
-	if (request.headers.get("If-None-Match") === etag) {
-		return new Response(null, {
-			status: 304,
-			headers: { ETag: etag },
-		});
 	}
 
 	const db = d1Wrapper(context.cloudflare.env.DB);
@@ -56,8 +49,8 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 	return new Response(body, {
 		headers: {
 			"Content-Type": "text/html; charset=utf-8",
-			"Cache-Control": "private, max-age=300",
-			ETag: etag,
+			"Cache-Control": "private, no-store",
+			Vary: "Cookie",
 			"X-Content-Type-Options": "nosniff",
 			"Referrer-Policy": "no-referrer",
 			// `sandbox` (no allow-scripts/allow-same-origin) neuters scripts and

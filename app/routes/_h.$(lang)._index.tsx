@@ -452,14 +452,17 @@ function MailboxBar({
 	);
 }
 
-export default function Index() {
-	const { lang, locale, turnstileSiteKey, email, emails, domain } =
-		useLoaderData<typeof loader>();
-	const actionData = useActionData<ActionData>();
-	const navigation = useNavigation();
-	const displayEmail = email ? email.toLowerCase() : null;
-
-	const [token, setToken] = useState("");
+function MailboxSplitView({
+	emails,
+	locale,
+	lang,
+	displayEmail,
+}: {
+	emails: Email[];
+	locale: Locale;
+	lang: string;
+	displayEmail: string;
+}) {
 	const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
 	const [isDesktop, setIsDesktop] = useState(false);
 
@@ -476,6 +479,55 @@ export default function Index() {
 	}, []);
 
 	return (
+		<div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-[380px_minmax(0,1fr)]">
+			<EmailList
+				initialEmails={emails}
+				locale={locale}
+				lang={lang}
+				mailbox={displayEmail}
+				selectedId={selectedEmail?.id}
+				onOpen={isDesktop ? handleOpenEmail : undefined}
+			/>
+
+			<div className="hidden min-h-0 min-w-0 flex-col gap-3 lg:flex">
+				<div aria-hidden className="h-9 shrink-0" />
+				{selectedEmail ? (
+					<EmailReader
+						id={selectedEmail.id}
+						subject={selectedEmail.subject}
+						sender={selectedEmail.senderLabel || ""}
+						createdAt={selectedEmail.createdAt}
+						noSubject={locale.list.no_subject}
+						className="min-w-0"
+					/>
+				) : (
+					<div className="panel flex min-h-0 flex-1 flex-col items-center justify-center rounded-2xl px-6 text-center">
+						<div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20">
+							<MailOpen className="h-8 w-8" />
+						</div>
+						<p className="text-sm font-semibold text-foreground">
+							{locale.list.select_email}
+						</p>
+						<p className="mt-1 max-w-xs text-xs leading-relaxed text-muted-foreground">
+							{locale.list.select_hint}
+						</p>
+					</div>
+				)}
+			</div>
+		</div>
+	);
+}
+
+export default function Index() {
+	const { lang, locale, turnstileSiteKey, email, emails, domain } =
+		useLoaderData<typeof loader>();
+	const actionData = useActionData<ActionData>();
+	const navigation = useNavigation();
+	const displayEmail = email ? email.toLowerCase() : null;
+
+	const [token, setToken] = useState("");
+
+	return (
 		<>
 			{email && displayEmail ? (
 				<section className="flex min-h-0 flex-1 flex-col overflow-hidden py-4 sm:py-6">
@@ -485,42 +537,13 @@ export default function Index() {
 							locale={locale}
 							displayEmail={displayEmail}
 						/>
-						<div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-[380px_minmax(0,1fr)]">
-							<EmailList
-								initialEmails={emails}
-								locale={locale}
-								lang={lang}
-								mailbox={displayEmail}
-								selectedId={selectedEmail?.id}
-								onOpen={isDesktop ? handleOpenEmail : undefined}
-							/>
-
-							<div className="hidden min-h-0 min-w-0 flex-col gap-3 lg:flex">
-								<div aria-hidden className="h-9 shrink-0" />
-								{selectedEmail ? (
-									<EmailReader
-										id={selectedEmail.id}
-										subject={selectedEmail.subject}
-										sender={selectedEmail.senderLabel || ""}
-										createdAt={selectedEmail.createdAt}
-										noSubject={locale.list.no_subject}
-										className="min-w-0"
-									/>
-								) : (
-									<div className="panel flex min-h-0 flex-1 flex-col items-center justify-center rounded-2xl px-6 text-center">
-										<div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20">
-											<MailOpen className="h-8 w-8" />
-										</div>
-										<p className="text-sm font-semibold text-foreground">
-											{locale.list.select_email}
-										</p>
-										<p className="mt-1 max-w-xs text-xs leading-relaxed text-muted-foreground">
-											{locale.list.select_hint}
-										</p>
-									</div>
-								)}
-							</div>
-						</div>
+						<MailboxSplitView
+							key={displayEmail}
+							emails={emails}
+							locale={locale}
+							lang={lang}
+							displayEmail={displayEmail}
+						/>
 					</div>
 				</section>
 			) : (
